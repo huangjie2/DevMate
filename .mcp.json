@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${PROJECT_ROOT}"],
+      "description": "文件系统操作"
+    }
+  },
+  "allowedPaths": [
+    "${PROJECT_ROOT}",
+    "${HOME}/.config/devmate"
+  ],
+  "maxConcurrentSkills": 3,
+  "skillTimeout": 30000
+}
