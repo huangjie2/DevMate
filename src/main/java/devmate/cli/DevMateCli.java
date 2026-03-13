@@ -1,6 +1,7 @@
 package devmate.cli;
 
 import devmate.agent.Agent;
+import devmate.agent.AgentEvent;
 import devmate.agent.AgentOutput;
 import devmate.config.ConfigLoader;
 import devmate.security.PathValidator;
@@ -389,35 +390,108 @@ public class DevMateCli implements QuarkusApplication {
      */
     private void executeAgent(String input) {
         System.out.println();
-        System.out.print("思考中...");
 
         try {
-            Result<AgentOutput> result = agent.run(input);
+            // 使用流式输出，实时显示进度
+            var publisher = agent.runStream(input);
+            var latch = new java.util.concurrent.CountDownLatch(1);
+            var outputBuilder = new StringBuilder();
+            var steps = new int[]{0};
+            var toolCalls = new int[]{0};
 
-            // 清除 "思考中..."
-            System.out.print("\r" + " ".repeat(20) + "\r");
+            publisher.subscribe(new java.util.concurrent.Flow.Subscriber<>() {
+                private java.util.concurrent.Flow.Subscription subscription;
 
-            switch (result) {
-                case Result.Success<AgentOutput> success -> {
-                    AgentOutput output = success.value();
-                    System.out.println();
-                    System.out.println(output.content());
-                    System.out.println();
-                    System.out.printf("[完成，步骤: %d，工具调用: %d]%n", output.steps(), output.toolCalls());
+                @Override
+                public void onSubscribe(java.util.concurrent.Flow.Subscription s) {
+                    this.subscription = s;
+                    s.request(1);
                 }
-                case Result.Failure<AgentOutput> failure -> {
-                    System.out.println();
-                    System.out.println("❌ 错误: " + failure.error());
+
+                @Override
+                public void onNext(AgentEvent event) {
+                    switch (event) {
+                        case AgentEvent.Thinking thinking -> {
+                            System.out.print("\r" + " ".repeat(30) + "\r");
+                            System.out.println("💭 " + truncate(thinking.content(), 100));
+                        }
+                        case AgentEvent.ToolCall toolCall -> {
+                            toolCalls[0]++;
+                            System.out.print("\r" + " ".repeat(30) + "\r");
+                            System.out.println("🔧 执行: " + toolCall.skillName());
+                        }
+                        case AgentEvent.ToolResult toolResult -> {
+                            steps[0]++;
+                            System.out.print("\r" + " ".repeat(30) + "\r");
+                            System.out.println("✅ 完成: " + toolResult.skillName());
+                        }
+                        case AgentEvent.FinalAnswer answer -> {
+                            outputBuilder.append(answer.content());
+                        }
+                        case AgentEvent.Error error -> {
+                            System.out.println("❌ 错误: " + error.message());
+                        }
+                    }
+                    subscription.request(1);
                 }
+
+                @Override
+                public void onError(Throwable t) {
+                    System.out.println("❌ 执行失败: " + t.getMessage());
+                    latch.countDown();
+                }
+
+                @Override
+                public void onComplete() {
+                    latch.countDown();
+                }
+            });
+
+            // 等待完成
+            latch.await(120, java.util.concurrent.TimeUnit.SECONDS);
+
+            // 输出最终结果
+            String output = outputBuilder.toString();
+            if (!output.isEmpty()) {
+                System.out.println();
+                System.out.println(formatOutput(output));
+                System.out.println();
+                System.out.printf("[完成，步骤: %d，工具调用: %d]%n", steps[0], toolCalls[0]);
             }
+
         } catch (Exception e) {
-            System.out.print("\r" + " ".repeat(20) + "\r");
             System.out.println();
             System.out.println("❌ 执行失败: " + e.getMessage());
             Log.errorf(e, "Agent execution failed");
         }
 
         System.out.println();
+    }
+
+    /**
+     * 格式化输出内容（高亮任务计划）
+     */
+    private String formatOutput(String content) {
+        // 高亮任务计划格式
+        return content
+            // 高亮任务计划标题
+            .replaceAll("📋\\s*\\*\\*任务计划\\*\\*", "\n📋 \u001B[1;36m任务计划\u001B[0m\n")
+            // 高亮待办项
+            .replaceAll("-\\s*\\[\\s*\\]\\s*(\\d+\\.)", "  ⏳ \u001B[33m$1\u001B[0m")
+            // 高亮已完成项
+            .replaceAll("-\\s*\\[x\\]\\s*(\\d+\\.)", "  ✅ \u001B[32m$1\u001B[0m")
+            // 高亮正在执行
+            .replaceAll("-\\s*\\[\\s*\\]\\s*\\*\\*(.+?)\\*\\*", "  🔄 \u001B[1;33m**$1**\u001B[0m");
+    }
+
+    /**
+     * 截断文本
+     */
+    private String truncate(String text, int maxLength) {
+        if (text == null) return "";
+        String singleLine = text.replace("\n", " ").trim();
+        if (singleLine.length() <= maxLength) return singleLine;
+        return singleLine.substring(0, maxLength - 3) + "...";
     }
 
     /**

@@ -32,6 +32,7 @@ import java.util.concurrent.SubmissionPublisher;
  * ReactAgent 实现
  * 
  * 基于 ReAct（Reasoning and Acting）模式的 Agent 实现
+ * 支持规划模式：先分析任务、生成待办列表、再逐步执行
  */
 @ApplicationScoped
 public class ReactAgent implements Agent {
@@ -51,6 +52,10 @@ public class ReactAgent implements Agent {
     private final List<ChatMessage> history = new ArrayList<>();
     private int maxIterations = 10;
     private boolean initialized = false;
+    
+    // 当前任务计划
+    private List<TaskPlan> currentPlan = new ArrayList<>();
+    private int currentStep = 0;
 
     @Override
     public Result<AgentOutput> run(String userInput) {
@@ -249,13 +254,32 @@ public class ReactAgent implements Agent {
 
         // ReAct 指令
         prompt.append("# 执行模式\n\n");
-        prompt.append("你是一个基于 ReAct (Reasoning and Acting) 模式的 AI Agent。\n");
-        prompt.append("在每一步，你需要：\n");
-        prompt.append("1. 思考当前需要做什么\n");
-        prompt.append("2. 如果需要使用工具，调用相应的工具\n");
-        prompt.append("3. 根据工具返回的结果继续思考\n");
-        prompt.append("4. 当任务完成时，给出最终答案\n\n");
-        prompt.append("请始终保持专业、安全、透明的态度。\n");
+        prompt.append("你是一个基于 ReAct (Reasoning and Acting) 模式的 AI Agent。\n\n");
+        
+        // 规划模式
+        prompt.append("## 任务规划\n\n");
+        prompt.append("对于复杂的、多步骤的任务，你必须先规划后执行：\n\n");
+        prompt.append("**第一步：生成待办列表**\n");
+        prompt.append("在执行任何操作前，先输出任务计划：\n");
+        prompt.append("```\n");
+        prompt.append("📋 **任务计划**\n");
+        prompt.append("- [ ] 1. 第一步描述\n");
+        prompt.append("- [ ] 2. 第二步描述\n");
+        prompt.append("...\n");
+        prompt.append("```\n\n");
+        prompt.append("**第二步：逐步执行**\n");
+        prompt.append("按照计划逐步执行，每完成一步更新状态：\n");
+        prompt.append("```\n");
+        prompt.append("- [x] 1. 第一步描述 ✓ 已完成\n");
+        prompt.append("- [ ] 2. 正在执行...\n");
+        prompt.append("```\n\n");
+        prompt.append("**第三步：汇总结果**\n");
+        prompt.append("所有步骤完成后，给出最终答案。\n\n");
+        
+        prompt.append("## 单步任务\n");
+        prompt.append("对于简单的、单步骤的任务，可以直接执行，无需规划。\n\n");
+        
+        prompt.append("请始终保持专业、安全、透明的态度。执行任何危险操作前必须确认。");
 
         return prompt.toString();
     }
