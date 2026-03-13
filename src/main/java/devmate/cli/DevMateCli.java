@@ -22,7 +22,6 @@ import org.jline.reader.impl.DefaultParser;
 import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
-import org.jline.utils.AttributedStyle;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -116,9 +115,6 @@ public class DevMateCli implements QuarkusApplication {
             .variable(LineReader.HISTORY_FILE, Path.of(System.getProperty("user.home"), ".devmate_history"))
             .variable(LineReader.HISTORY_SIZE, 1000)
             .variable(LineReader.HISTORY_FILE_SIZE, 1000)
-            // 补全样式
-            .variable(LineReader.COMPLETION_STYLE_LIST_SELECTION, AttributedStyle.BOLD.foreground(AttributedStyle.CYAN))
-            .variable(LineReader.COMPLETION_STYLE_LIST_DESCRIPTION, AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW))
             .build();
 
         // 启用自动补全选项 - 关键配置实现类似 iFlow 的实时补全
