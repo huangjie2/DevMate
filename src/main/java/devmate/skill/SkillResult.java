@@ -5,16 +5,16 @@ import devmate.util.JsonMapper;
 import java.util.Map;
 
 /**
- * Skill 执行结果
+ * Skill Execution Result
  */
 public record SkillResult(
     /**
-     * 结果内容
+     * Result content
      */
     String content,
 
     /**
-     * 元数据（可选）
+     * Metadata (optional)
      */
     Map<String, Object> metadata
 ) {
@@ -22,14 +22,14 @@ public record SkillResult(
     private static final Map<String, Object> EMPTY_METADATA = Map.of();
 
     /**
-     * 创建简单结果（无元数据）
+     * Create simple result (no metadata)
      */
     public SkillResult(String content) {
         this(content, EMPTY_METADATA);
     }
 
     /**
-     * 创建带元数据的结果
+     * Create result with metadata
      */
     public SkillResult(String content, Map<String, Object> metadata) {
         this.content = content;
@@ -37,28 +37,28 @@ public record SkillResult(
     }
 
     /**
-     * 创建成功结果
+     * Create success result
      */
     public static SkillResult of(String content) {
         return new SkillResult(content);
     }
 
     /**
-     * 创建带元数据的成功结果
+     * Create success result with metadata
      */
     public static SkillResult of(String content, Map<String, Object> metadata) {
         return new SkillResult(content, metadata);
     }
 
     /**
-     * 创建带单个元数据的成功结果
+     * Create success result with single metadata
      */
     public static SkillResult of(String content, String key, Object value) {
         return new SkillResult(content, Map.of(key, value));
     }
 
     /**
-     * 转换为 JSON 格式
+     * Convert to JSON format
      */
     public String toJson() {
         return JsonMapper.toJson(this);

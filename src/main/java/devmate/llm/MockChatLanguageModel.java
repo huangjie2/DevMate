@@ -8,7 +8,7 @@ import dev.langchain4j.model.output.Response;
 import java.util.List;
 
 /**
- * Mock ChatLanguageModel - 用于无 API Key 时的降级
+ * Mock ChatLanguageModel - Fallback when no API Key is configured
  */
 public class MockChatLanguageModel implements ChatLanguageModel {
 
@@ -21,15 +21,15 @@ public class MockChatLanguageModel implements ChatLanguageModel {
             .orElse("");
         
         String response = """
-            ⚠️  未配置 OpenAI API Key，无法执行 AI 推理。
+            ⚠️  OpenAI API Key not configured. Cannot perform AI inference.
             
-            请设置环境变量：
+            Please set the environment variable:
               export OPENAI_API_KEY=your-api-key
             
-            或在 application.properties 中配置：
+            Or configure in application.properties:
               openai.api-key=your-api-key
             
-            您输入的内容: %s
+            Your input: %s
             """.formatted(lastUserMessage);
         
         return Response.from(AiMessage.from(response));

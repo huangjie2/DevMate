@@ -3,27 +3,27 @@ package devmate.util;
 import java.util.function.Function;
 
 /**
- * 统一返回类型 - 使用 Java 21 Sealed Classes 实现
- * 替代 Vavr Either，提供类型安全的成功/失败处理
+ * Unified Result Type - Using Java 21 Sealed Classes
+ * Replaces Vavr Either, provides type-safe success/failure handling
  */
 public sealed interface Result<T> {
 
     /**
-     * 判断是否成功
+     * Check if successful
      */
     default boolean isSuccess() {
         return this instanceof Success;
     }
 
     /**
-     * 判断是否失败
+     * Check if failed
      */
     default boolean isFailure() {
         return this instanceof Failure;
     }
 
     /**
-     * 获取成功值，失败时抛出异常
+     * Get success value, throw exception if failed
      */
     default T getOrThrow() {
         return switch (this) {
@@ -34,7 +34,7 @@ public sealed interface Result<T> {
     }
 
     /**
-     * 获取成功值，失败时返回默认值
+     * Get success value, return default if failed
      */
     default T getOrElse(T defaultValue) {
         return switch (this) {
@@ -44,7 +44,7 @@ public sealed interface Result<T> {
     }
 
     /**
-     * 映射成功值
+     * Map success value
      */
     default <U> Result<U> map(Function<T, U> mapper) {
         return switch (this) {
@@ -54,7 +54,7 @@ public sealed interface Result<T> {
     }
 
     /**
-     * 扁平映射
+     * Flat map
      */
     default <U> Result<U> flatMap(Function<T, Result<U>> mapper) {
         return switch (this) {
@@ -64,7 +64,7 @@ public sealed interface Result<T> {
     }
 
     /**
-     * 成功结果
+     * Success result
      */
     record Success<T>(T value) implements Result<T> {
         public Success {
@@ -75,7 +75,7 @@ public sealed interface Result<T> {
     }
 
     /**
-     * 失败结果
+     * Failure result
      */
     record Failure<T>(String error, Throwable cause) implements Result<T> {
         
@@ -90,31 +90,31 @@ public sealed interface Result<T> {
         }
     }
 
-    // ========== 静态工厂方法 ==========
+    // ========== Static Factory Methods ==========
 
     /**
-     * 创建成功结果
+     * Create success result
      */
     static <T> Result<T> success(T value) {
         return new Success<>(value);
     }
 
     /**
-     * 创建失败结果
+     * Create failure result
      */
     static <T> Result<T> failure(String error) {
         return new Failure<>(error);
     }
 
     /**
-     * 创建失败结果（带异常）
+     * Create failure result with exception
      */
     static <T> Result<T> failure(String error, Throwable cause) {
         return new Failure<>(error, cause);
     }
 
     /**
-     * 从可能抛出异常的操作创建结果
+     * Create result from operation that may throw exception
      */
     static <T> Result<T> of(CheckedSupplier<T> supplier) {
         try {

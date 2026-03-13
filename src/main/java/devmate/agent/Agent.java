@@ -5,45 +5,45 @@ import devmate.util.Result;
 import java.util.concurrent.Flow;
 
 /**
- * Agent 接口
+ * Agent Interface
  * 
- * 基于 ReAct 模式的轻量级任务编排器
+ * Lightweight task orchestrator based on ReAct pattern
  */
 public interface Agent {
 
     /**
-     * 执行用户指令
+     * Execute user instruction
      * 
-     * @param userInput 用户输入
-     * @return 执行结果
+     * @param userInput User input
+     * @return Execution result
      */
     Result<AgentOutput> run(String userInput);
 
     /**
-     * 流式执行（实时输出）
+     * Stream execution (real-time output)
      * 
-     * @param userInput 用户输入
-     * @return 事件流
+     * @param userInput User input
+     * @return Event stream
      */
     Flow.Publisher<AgentEvent> runStream(String userInput);
 
     /**
-     * 重置上下文
+     * Reset context
      */
     void reset();
 
     /**
-     * 获取当前对话历史大小
+     * Get current conversation history size
      */
     int getHistorySize();
 
     /**
-     * 设置最大迭代次数
+     * Set maximum iterations
      */
     void setMaxIterations(int maxIterations);
 
     /**
-     * 获取最大迭代次数
+     * Get maximum iterations
      */
     int getMaxIterations();
 }

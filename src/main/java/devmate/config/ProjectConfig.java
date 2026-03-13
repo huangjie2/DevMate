@@ -4,47 +4,47 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 项目配置 - 从 .claude.md 解析
+ * Project Configuration - Parsed from .claude.md
  */
 public record ProjectConfig(
     /**
-     * 项目名称
+     * Project name
      */
     String name,
 
     /**
-     * 项目类型
+     * Project type
      */
     String type,
 
     /**
-     * 技术栈
+     * Tech stack
      */
     List<String> techStack,
 
     /**
-     * 项目结构
+     * Project structure
      */
     Map<String, String> structure,
 
     /**
-     * 开发约束
+     * Development constraints
      */
     List<String> constraints,
 
     /**
-     * 测试要求
+     * Test requirements
      */
     List<String> testRequirements,
 
     /**
-     * 原始 Markdown 内容
+     * Raw Markdown content
      */
     String rawContent
 ) {
 
     /**
-     * 创建默认配置
+     * Create default configuration
      */
     public static ProjectConfig defaultConfig() {
         return new ProjectConfig(
@@ -59,7 +59,7 @@ public record ProjectConfig(
     }
 
     /**
-     * 构建器
+     * Builder
      */
     public static Builder builder() {
         return new Builder();

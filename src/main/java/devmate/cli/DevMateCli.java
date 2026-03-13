@@ -29,7 +29,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * DevMate CLI 入口
+ * DevMate CLI Entry Point
  */
 @QuarkusMain
 public class DevMateCli implements QuarkusApplication {
@@ -73,16 +73,16 @@ public class DevMateCli implements QuarkusApplication {
 
     @Override
     public int run(String... args) throws Exception {
-        // 初始化
+        // Initialize
         initializeTerminal();
         initializeProjectRoot(args);
         registerSkills();
         initializeFileReferenceParser();
 
-        // 打印欢迎信息
+        // Print welcome message
         printWelcome();
 
-        // 主循环
+        // Main loop
         int exitCode = 0;
         try {
             exitCode = mainLoop();
@@ -96,14 +96,14 @@ public class DevMateCli implements QuarkusApplication {
     private AutoSuggestionProvider suggestionProvider;
 
     /**
-     * 初始化终端
+     * Initialize terminal
      */
     private void initializeTerminal() throws IOException {
         terminal = TerminalBuilder.builder()
             .system(true)
             .build();
 
-        // 创建补全器和自动建议提供器
+        // Create completer and auto-suggestion provider
         CommandCompleter completer = new CommandCompleter(skillRegistry, configLoader.getProjectRoot());
         suggestionProvider = new AutoSuggestionProvider(skillRegistry, configLoader.getProjectRoot());
 
@@ -118,26 +118,26 @@ public class DevMateCli implements QuarkusApplication {
             .variable(LineReader.HISTORY_FILE_SIZE, 1000)
             .build();
 
-        // 启用自动补全选项 - 关键配置实现类似 iFlow 的实时补全
-        reader.setOpt(LineReader.Option.AUTO_GROUP);        // 自动分组
-        reader.setOpt(LineReader.Option.AUTO_MENU);         // 自动显示菜单
-        reader.setOpt(LineReader.Option.AUTO_MENU_LIST);    // 自动显示菜单列表
-        reader.setOpt(LineReader.Option.CASE_INSENSITIVE);  // 大小写不敏感
+        // Enable auto-completion options - key configuration for iFlow-like real-time completion
+        reader.setOpt(LineReader.Option.AUTO_GROUP);        // Auto group
+        reader.setOpt(LineReader.Option.AUTO_MENU);         // Auto show menu
+        reader.setOpt(LineReader.Option.AUTO_MENU_LIST);    // Auto show menu list
+        reader.setOpt(LineReader.Option.CASE_INSENSITIVE);  // Case insensitive
         
-        // 设置自动提示功能
+        // Setup auto-suggestion feature
         setupAutoSuggestions();
     }
 
     /**
-     * 设置自动提示功能 - 输入时实时显示补全建议
+     * Setup auto-suggestion - show completion suggestions in real-time
      */
     private void setupAutoSuggestions() {
-        // 启用自动建议，输入时自动显示补全
+        // Enable auto-suggestion, show completions while typing
         reader.setAutosuggestion(LineReader.SuggestionType.COMPLETER);
     }
 
     /**
-     * 获取当前光标所在的单词
+     * Get current word at cursor position
      */
     private String getCurrentWord(String buffer, int cursor) {
         int start = cursor;
@@ -148,7 +148,7 @@ public class DevMateCli implements QuarkusApplication {
     }
 
     /**
-     * 初始化项目根目录
+     * Initialize project root directory
      */
     private void initializeProjectRoot(String[] args) {
         Path projectRoot;
@@ -162,14 +162,14 @@ public class DevMateCli implements QuarkusApplication {
     }
 
     /**
-     * 初始化文件引用解析器
+     * Initialize file reference parser
      */
     private void initializeFileReferenceParser() {
         fileReferenceParser = new FileReferenceParser(configLoader.getProjectRoot(), pathValidator);
     }
 
     /**
-     * 注册内置 Skills
+     * Register built-in Skills
      */
     private void registerSkills() {
         skillRegistry.register(fileReadSkill);
@@ -182,11 +182,11 @@ public class DevMateCli implements QuarkusApplication {
     }
 
     /**
-     * 打印欢迎信息
+     * Print welcome message
      */
     private void printWelcome() {
         System.out.println();
-        // 彩色 ASCII Logo
+        // Colored ASCII Logo
         System.out.println(CliStyle.CYAN + "╔═══════════════════════════════════════════════════════════╗" + CliStyle.RESET);
         System.out.println(CliStyle.CYAN + "║" + CliStyle.RESET + "                                                           " + CliStyle.CYAN + "║" + CliStyle.RESET);
         System.out.println(CliStyle.CYAN + "║" + CliStyle.RESET + "   " + CliStyle.BRIGHT_MAGENTA + "██████╗ ███████╗██████╗ ███╗   ███╗" + CliStyle.RESET + "                    " + CliStyle.CYAN + "║" + CliStyle.RESET);
@@ -202,17 +202,17 @@ public class DevMateCli implements QuarkusApplication {
         System.out.println(CliStyle.CYAN + "╚═══════════════════════════════════════════════════════════╝" + CliStyle.RESET);
         System.out.println();
         
-        // 快捷提示
-        System.out.println("  " + CliStyle.command("/help") + "  查看帮助  " + CliStyle.command("/exit") + "  退出程序");
-        System.out.println("  " + CliStyle.highlight("@filename") + "  引用文件  " + CliStyle.highlight("Tab") + "  自动补全");
+        // Quick tips
+        System.out.println("  " + CliStyle.command("/help") + "  Show help  " + CliStyle.command("/exit") + "  Exit program");
+        System.out.println("  " + CliStyle.highlight("@filename") + "  Reference file  " + CliStyle.highlight("Tab") + "  Auto complete");
         System.out.println();
     }
 
     /**
-     * 主循环
+     * Main loop
      */
     private int mainLoop() {
-        // 彩色提示符
+        // Colored prompt
         String prompt = CliStyle.BOLD + CliStyle.BRIGHT_GREEN + "devmate" + CliStyle.RESET + 
                         CliStyle.BRIGHT_CYAN + ">" + CliStyle.RESET + " ";
         
@@ -235,7 +235,7 @@ public class DevMateCli implements QuarkusApplication {
 
             String trimmedInput = input.trim();
 
-            // 处理内置命令
+            // Handle built-in commands
             if (trimmedInput.startsWith("/")) {
                 if (handleBuiltinCommand(trimmedInput)) {
                     break;
@@ -243,10 +243,10 @@ public class DevMateCli implements QuarkusApplication {
                 continue;
             }
 
-            // 解析文件引用
+            // Parse file references
             String processedInput = processFileReferences(trimmedInput);
 
-            // 执行 Agent
+            // Execute Agent
             executeAgent(processedInput);
         }
 
@@ -255,7 +255,7 @@ public class DevMateCli implements QuarkusApplication {
     }
 
     /**
-     * 处理文件引用
+     * Process file references
      */
     private String processFileReferences(String input) {
         if (!fileReferenceParser.hasFileReference(input)) {
@@ -264,11 +264,11 @@ public class DevMateCli implements QuarkusApplication {
 
         FileReferenceParser.ParseResult result = fileReferenceParser.parse(input);
         
-        // 显示解析的文件引用
+        // Show parsed file references
         List<FileReferenceParser.FileReference> refs = result.references();
         if (!refs.isEmpty()) {
             System.out.println();
-            System.out.println("  " + CliStyle.FOLDER + " " + CliStyle.title("检测到 " + refs.size() + " 个文件引用"));
+            System.out.println("  " + CliStyle.FOLDER + " " + CliStyle.title("Detected " + refs.size() + " file reference(s)"));
             for (FileReferenceParser.FileReference ref : refs) {
                 if (ref.success()) {
                     String size = formatSize(ref.content().length());
@@ -284,7 +284,7 @@ public class DevMateCli implements QuarkusApplication {
     }
 
     /**
-     * 格式化文件大小
+     * Format file size
      */
     private String formatSize(int bytes) {
         if (bytes < 1024) {
@@ -297,8 +297,8 @@ public class DevMateCli implements QuarkusApplication {
     }
 
     /**
-     * 处理内置命令
-     * @return 是否应该退出
+     * Handle built-in commands
+     * @return whether to exit
      */
     private boolean handleBuiltinCommand(String command) {
         return switch (command.toLowerCase()) {
@@ -308,7 +308,7 @@ public class DevMateCli implements QuarkusApplication {
             case "/reset" -> {
                 agent.reset();
                 System.out.println();
-                System.out.println("  " + CliStyle.success("上下文已清空"));
+                System.out.println("  " + CliStyle.success("Context cleared"));
                 System.out.println();
                 yield false;
             }
@@ -330,8 +330,8 @@ public class DevMateCli implements QuarkusApplication {
             }
             default -> {
                 System.out.println();
-                System.out.println("  " + CliStyle.error("未知命令: " + command));
-                System.out.println("  " + CliStyle.muted("输入 /help 查看可用命令"));
+                System.out.println("  " + CliStyle.error("Unknown command: " + command));
+                System.out.println("  " + CliStyle.muted("Type /help for available commands"));
                 System.out.println();
                 yield false;
             }
@@ -339,54 +339,54 @@ public class DevMateCli implements QuarkusApplication {
     }
 
     /**
-     * 打印退出信息
+     * Print exit message
      */
     private void printExitMessage() {
         System.out.println();
-        System.out.println("  " + CliStyle.SPARKLE + " " + CliStyle.title("感谢使用 DevMate!"));
-        System.out.println("  " + CliStyle.muted("日志文件: ~/.devmate/logs/devmate.log"));
+        System.out.println("  " + CliStyle.SPARKLE + " " + CliStyle.title("Thank you for using DevMate!"));
+        System.out.println("  " + CliStyle.muted("Log file: ~/.devmate/logs/devmate.log"));
         System.out.println();
     }
 
     /**
-     * 打印帮助
+     * Print help
      */
     private void printHelp() {
         System.out.println();
-        System.out.println("  " + CliStyle.title("📖 帮助信息"));
+        System.out.println("  " + CliStyle.title("📖 Help"));
         System.out.println();
         System.out.println(CliStyle.CYAN + "  ┌─────────────────────────────────────────────────────┐" + CliStyle.RESET);
-        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + " " + CliStyle.BOLD + "命令" + CliStyle.RESET + "                                             " + CliStyle.CYAN + "│" + CliStyle.RESET);
+        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + " " + CliStyle.BOLD + "Commands" + CliStyle.RESET + "                                          " + CliStyle.CYAN + "│" + CliStyle.RESET);
         System.out.println(CliStyle.CYAN + "  ├─────────────────────────────────────────────────────┤" + CliStyle.RESET);
-        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.command("/help") + "  显示帮助信息                            " + CliStyle.CYAN + "│" + CliStyle.RESET);
-        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.command("/exit") + "  退出程序                                " + CliStyle.CYAN + "│" + CliStyle.RESET);
-        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.command("/reset") + " 清空对话上下文                          " + CliStyle.CYAN + "│" + CliStyle.RESET);
-        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.command("/skills") + " 列出可用的技能                          " + CliStyle.CYAN + "│" + CliStyle.RESET);
-        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.command("/config") + " 显示当前配置                            " + CliStyle.CYAN + "│" + CliStyle.RESET);
-        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.command("/clear") + " 清屏                                    " + CliStyle.CYAN + "│" + CliStyle.RESET);
+        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.command("/help") + "  Show help                               " + CliStyle.CYAN + "│" + CliStyle.RESET);
+        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.command("/exit") + "  Exit program                            " + CliStyle.CYAN + "│" + CliStyle.RESET);
+        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.command("/reset") + " Clear conversation context               " + CliStyle.CYAN + "│" + CliStyle.RESET);
+        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.command("/skills") + " List available skills                    " + CliStyle.CYAN + "│" + CliStyle.RESET);
+        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.command("/config") + " Show current configuration               " + CliStyle.CYAN + "│" + CliStyle.RESET);
+        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.command("/clear") + " Clear screen                             " + CliStyle.CYAN + "│" + CliStyle.RESET);
         System.out.println(CliStyle.CYAN + "  └─────────────────────────────────────────────────────┘" + CliStyle.RESET);
         System.out.println();
-        System.out.println("  " + CliStyle.title("📄 文件引用"));
+        System.out.println("  " + CliStyle.title("📄 File References"));
         System.out.println();
-        System.out.println("    " + CliStyle.highlight("@filename") + "     引用文件内容");
-        System.out.println("    " + CliStyle.highlight("@path/to/file") + " 引用相对路径文件");
-        System.out.println("    " + CliStyle.highlight("@.") + "           引用项目结构");
+        System.out.println("    " + CliStyle.highlight("@filename") + "     Reference file content");
+        System.out.println("    " + CliStyle.highlight("@path/to/file") + " Reference relative path file");
+        System.out.println("    " + CliStyle.highlight("@.") + "           Reference project structure");
         System.out.println();
-        System.out.println("  " + CliStyle.title("💡 示例"));
+        System.out.println("  " + CliStyle.title("💡 Examples"));
         System.out.println();
-        System.out.println("    " + CliStyle.muted("分析 @src/main/java/App.java 这个文件"));
-        System.out.println("    " + CliStyle.muted("对比 @file1.java 和 @file2.java"));
+        System.out.println("    " + CliStyle.muted("Analyze @src/main/java/App.java"));
+        System.out.println("    " + CliStyle.muted("Compare @file1.java and @file2.java"));
         System.out.println();
-        System.out.println("  " + CliStyle.info("按 Tab 键可以自动补全命令和文件路径"));
+        System.out.println("  " + CliStyle.info("Press Tab to auto-complete commands and file paths"));
         System.out.println();
     }
 
     /**
-     * 打印可用技能
+     * Print available skills
      */
     private void printSkills() {
         System.out.println();
-        System.out.println("  " + CliStyle.title("🔧 可用技能 (" + skillRegistry.size() + " 个)"));
+        System.out.println("  " + CliStyle.title("🔧 Available Skills (" + skillRegistry.size() + ")"));
         System.out.println();
         System.out.println(CliStyle.CYAN + "  ┌──────────────────────────────────────────────────────────────┐" + CliStyle.RESET);
         
@@ -401,27 +401,27 @@ public class DevMateCli implements QuarkusApplication {
     }
 
     /**
-     * 打印配置
+     * Print configuration
      */
     private void printConfig() {
         System.out.println();
-        System.out.println("  " + CliStyle.title("⚙️ 当前配置"));
+        System.out.println("  " + CliStyle.title("⚙️ Current Configuration"));
         System.out.println();
         System.out.println(CliStyle.CYAN + "  ┌─────────────────────────────────────────────────────┐" + CliStyle.RESET);
-        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.BOLD + "项目根目录" + CliStyle.RESET + "    " + CliStyle.highlight(configLoader.getProjectRoot().toString()) + CliStyle.RESET);
+        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.BOLD + "Project Root" + CliStyle.RESET + "   " + CliStyle.highlight(configLoader.getProjectRoot().toString()) + CliStyle.RESET);
         
         configLoader.loadClaudeConfig().ifPresent(config -> {
-            System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.BOLD + "项目名称" + CliStyle.RESET + "      " + CliStyle.highlight(config.name()));
-            System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.BOLD + "项目类型" + CliStyle.RESET + "      " + CliStyle.highlight(config.type()));
+            System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.BOLD + "Project Name" + CliStyle.RESET + "   " + CliStyle.highlight(config.name()));
+            System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.BOLD + "Project Type" + CliStyle.RESET + "   " + CliStyle.highlight(config.type()));
         });
         
-        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.BOLD + "注册技能数" + CliStyle.RESET + "    " + CliStyle.highlight(String.valueOf(skillRegistry.size())));
+        System.out.println(CliStyle.CYAN + "  │" + CliStyle.RESET + "  " + CliStyle.BOLD + "Skills" + CliStyle.RESET + "        " + CliStyle.highlight(String.valueOf(skillRegistry.size())));
         System.out.println(CliStyle.CYAN + "  └─────────────────────────────────────────────────────┘" + CliStyle.RESET);
         System.out.println();
     }
     
     /**
-     * 截断文本
+     * Truncate text
      */
     private String truncateText(String text, int maxLength) {
         if (text == null) return "";
@@ -430,13 +430,13 @@ public class DevMateCli implements QuarkusApplication {
     }
 
     /**
-     * 执行 Agent
+     * Execute Agent
      */
     private void executeAgent(String input) {
         System.out.println();
 
         try {
-            // 使用流式输出，实时显示进度
+            // Use streaming output for real-time progress
             var publisher = agent.runStream(input);
             var latch = new java.util.concurrent.CountDownLatch(1);
             var outputBuilder = new StringBuilder();
@@ -487,7 +487,7 @@ public class DevMateCli implements QuarkusApplication {
                 @Override
                 public void onError(Throwable t) {
                     System.out.println();
-                    System.out.println("  " + CliStyle.error("执行失败: " + t.getMessage()));
+                    System.out.println("  " + CliStyle.error("Execution failed: " + t.getMessage()));
                     latch.countDown();
                 }
 
@@ -497,24 +497,24 @@ public class DevMateCli implements QuarkusApplication {
                 }
             });
 
-            // 等待完成
+            // Wait for completion
             latch.await(120, java.util.concurrent.TimeUnit.SECONDS);
 
-            // 输出最终结果
+            // Output final result
             String output = outputBuilder.toString();
             if (!output.isEmpty()) {
                 System.out.println();
                 System.out.println(formatOutput(output));
                 System.out.println();
                 System.out.println("  " + CliStyle.muted("───"));
-                System.out.println("  " + CliStyle.badge("完成", CliStyle.BG_GREEN) + " " + 
-                    CliStyle.muted("步骤: " + steps[0] + " • 工具调用: " + toolCalls[0]));
+                System.out.println("  " + CliStyle.badge("Done", CliStyle.BG_GREEN) + " " + 
+                    CliStyle.muted("Steps: " + steps[0] + " • Tool calls: " + toolCalls[0]));
                 System.out.println();
             }
 
         } catch (Exception e) {
             System.out.println();
-            System.out.println("  " + CliStyle.error("执行失败: " + e.getMessage()));
+            System.out.println("  " + CliStyle.error("Execution failed: " + e.getMessage()));
             Log.errorf(e, "Agent execution failed");
         }
 
@@ -522,23 +522,23 @@ public class DevMateCli implements QuarkusApplication {
     }
 
     /**
-     * 格式化输出内容（高亮任务计划）
+     * Format output content (highlight task plan)
      */
     private String formatOutput(String content) {
-        // 高亮任务计划格式
+        // Highlight task plan format
         return content
-            // 高亮任务计划标题
-            .replaceAll("📋\\s*\\*\\*任务计划\\*\\*", "\n📋 \u001B[1;36m任务计划\u001B[0m\n")
-            // 高亮待办项
+            // Highlight task plan title
+            .replaceAll("📋\\s*\\*\\*Task Plan\\*\\*", "\n📋 \u001B[1;36mTask Plan\u001B[0m\n")
+            // Highlight pending items
             .replaceAll("-\\s*\\[\\s*\\]\\s*(\\d+\\.)", "  ⏳ \u001B[33m$1\u001B[0m")
-            // 高亮已完成项
+            // Highlight completed items
             .replaceAll("-\\s*\\[x\\]\\s*(\\d+\\.)", "  ✅ \u001B[32m$1\u001B[0m")
-            // 高亮正在执行
+            // Highlight in-progress
             .replaceAll("-\\s*\\[\\s*\\]\\s*\\*\\*(.+?)\\*\\*", "  🔄 \u001B[1;33m**$1**\u001B[0m");
     }
 
     /**
-     * 截断文本
+     * Truncate text
      */
     private String truncate(String text, int maxLength) {
         if (text == null) return "";
@@ -548,7 +548,7 @@ public class DevMateCli implements QuarkusApplication {
     }
 
     /**
-     * 清理资源
+     * Cleanup resources
      */
     private void cleanup() {
         userConfirmation.close();

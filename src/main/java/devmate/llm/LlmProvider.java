@@ -11,7 +11,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import java.time.Duration;
 
 /**
- * LLM Provider - 提供 ChatLanguageModel 的 CDI Bean
+ * LLM Provider - Provides ChatLanguageModel CDI Bean
  */
 @ApplicationScoped
 public class LlmProvider {
@@ -35,13 +35,13 @@ public class LlmProvider {
     @ApplicationScoped
     @Startup
     public ChatLanguageModel createChatModel() {
-        // 解析环境变量
+        // Resolve environment variables
         String resolvedApiKey = resolveEnvVar(apiKey);
         String resolvedBaseUrl = resolveEnvVar(baseUrl);
         
         if (resolvedApiKey == null || resolvedApiKey.isBlank() || resolvedApiKey.equals("${OPENAI_API_KEY}")) {
             Log.warn("No OpenAI API key configured. Set OPENAI_API_KEY environment variable.");
-            // 返回一个空实现，允许应用启动
+            // Return empty implementation to allow app startup
             return new MockChatLanguageModel();
         }
 
@@ -61,7 +61,7 @@ public class LlmProvider {
     private String resolveEnvVar(String value) {
         if (value == null) return null;
         
-        // 处理 ${ENV_VAR} 格式
+        // Handle ${ENV_VAR} format
         if (value.startsWith("${") && value.endsWith("}")) {
             String envVar = value.substring(2, value.length() - 1);
             return System.getenv(envVar);

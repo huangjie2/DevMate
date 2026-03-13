@@ -4,68 +4,68 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * MCP 配置 - 从 .mcp.json 解析
+ * MCP Configuration - Parsed from .mcp.json
  */
 public record McpConfig(
     /**
-     * MCP 服务器配置
+     * MCP server configurations
      */
     Map<String, McpServer> mcpServers,
 
     /**
-     * 允许访问的路径列表
+     * List of allowed paths
      */
     List<String> allowedPaths,
 
     /**
-     * 最大并发 Skill 数
+     * Maximum concurrent Skills
      */
     int maxConcurrentSkills,
 
     /**
-     * Skill 执行超时（毫秒）
+     * Skill execution timeout (milliseconds)
      */
     long skillTimeout
 ) {
 
     /**
-     * MCP 服务器配置
+     * MCP Server Configuration
      */
     public record McpServer(
         /**
-         * 启动命令
+         * Startup command
          */
         String command,
 
         /**
-         * 命令参数
+         * Command arguments
          */
         List<String> args,
 
         /**
-         * 环境变量
+         * Environment variables
          */
         Map<String, String> env,
 
         /**
-         * 描述
+         * Description
          */
         String description,
 
         /**
-         * 是否启用
+         * Whether enabled
          */
         boolean enabled
     ) {
         public McpServer {
             args = args != null ? args : List.of();
             env = env != null ? env : Map.of();
-            enabled = enabled != false; // 默认启用
+            enabled = enabled != false; // Default enabled
         }
     }
 
     /**
-     * 创建默认配置
+     * Create default configuration
      */
     public static McpConfig defaultConfig() {
         return new McpConfig(
@@ -80,7 +80,7 @@ public record McpConfig(
     }
 
     /**
-     * 构建器
+     * Builder
      */
     public static Builder builder() {
         return new Builder();

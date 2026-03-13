@@ -1,11 +1,11 @@
 package devmate.cli;
 
 /**
- * CLI 样式工具 - ANSI 颜色和格式化
+ * CLI Style Utilities - ANSI Colors and Formatting
  */
 public final class CliStyle {
 
-    // ANSI 颜色代码
+    // ANSI color codes
     public static final String RESET = "\u001B[0m";
     public static final String BOLD = "\u001B[1m";
     public static final String DIM = "\u001B[2m";
@@ -14,7 +14,7 @@ public final class CliStyle {
     public static final String BLINK = "\u001B[5m";
     public static final String REVERSE = "\u001B[7m";
     
-    // 前景色
+    // Foreground colors
     public static final String BLACK = "\u001B[30m";
     public static final String RED = "\u001B[31m";
     public static final String GREEN = "\u001B[32m";
@@ -24,7 +24,7 @@ public final class CliStyle {
     public static final String CYAN = "\u001B[36m";
     public static final String WHITE = "\u001B[37m";
     
-    // 亮色
+    // Bright colors
     public static final String BRIGHT_BLACK = "\u001B[90m";
     public static final String BRIGHT_RED = "\u001B[91m";
     public static final String BRIGHT_GREEN = "\u001B[92m";
@@ -34,7 +34,7 @@ public final class CliStyle {
     public static final String BRIGHT_CYAN = "\u001B[96m";
     public static final String BRIGHT_WHITE = "\u001B[97m";
     
-    // 背景色
+    // Background colors
     public static final String BG_BLACK = "\u001B[40m";
     public static final String BG_RED = "\u001B[41m";
     public static final String BG_GREEN = "\u001B[42m";
@@ -44,7 +44,7 @@ public final class CliStyle {
     public static final String BG_CYAN = "\u001B[46m";
     public static final String BG_WHITE = "\u001B[47m";
 
-    // 图标
+    // Icons
     public static final String CHECK = "✓";
     public static final String CROSS = "✗";
     public static final String ARROW = "→";
@@ -64,7 +64,7 @@ public final class CliStyle {
     public static final String THINKING = "💭";
     public static final String CLIPBOARD = "📋";
     
-    // 语义化样式方法
+    // Semantic style methods
     
     public static String success(String text) {
         return GREEN + BOLD + CHECK + " " + text + RESET;
@@ -106,7 +106,7 @@ public final class CliStyle {
         return color + BOLD + " " + text + " " + RESET;
     }
     
-    // 盒子绘制
+    // Box drawing
     
     public static String box(String title, String content) {
         int width = Math.max(title.length(), maxWidth(content)) + 4;
@@ -148,7 +148,7 @@ public final class CliStyle {
         
         StringBuilder sb = new StringBuilder();
         
-        // 表头
+        // Header
         sb.append(CYAN + "┌" + RESET);
         for (int i = 0; i < widths.length; i++) {
             sb.append(CYAN + "─".repeat(widths[i] + 2) + (i < widths.length - 1 ? "┬" : "┐") + RESET);
@@ -163,14 +163,14 @@ public final class CliStyle {
         }
         sb.append("\n");
         
-        // 分隔线
+        // Separator
         sb.append(CYAN + "├" + RESET);
         for (int i = 0; i < widths.length; i++) {
             sb.append(CYAN + "─".repeat(widths[i] + 2) + (i < widths.length - 1 ? "┼" : "┤") + RESET);
         }
         sb.append("\n");
         
-        // 数据行
+        // Data rows
         for (String[] row : rows) {
             sb.append(CYAN + "│" + RESET);
             for (int i = 0; i < widths.length; i++) {
@@ -182,7 +182,7 @@ public final class CliStyle {
             sb.append("\n");
         }
         
-        // 底部
+        // Bottom
         sb.append(CYAN + "└" + RESET);
         for (int i = 0; i < widths.length; i++) {
             sb.append(CYAN + "─".repeat(widths[i] + 2) + (i < widths.length - 1 ? "┴" : "┘") + RESET);
@@ -199,18 +199,18 @@ public final class CliStyle {
         return max;
     }
     
-    // 清屏
+    // Clear screen
     public static void clearScreen() {
         System.out.print("\u001B[2J\u001B[H");
         System.out.flush();
     }
     
-    // 移动光标
+    // Move cursor
     public static void moveCursor(int row, int col) {
         System.out.printf("\u001B[%d;%dH", row, col);
     }
     
-    // 保存/恢复光标
+    // Save/restore cursor
     public static void saveCursor() {
         System.out.print("\u001B[s");
     }
@@ -219,7 +219,7 @@ public final class CliStyle {
         System.out.print("\u001B[u");
     }
     
-    // 隐藏/显示光标
+    // Hide/show cursor
     public static void hideCursor() {
         System.out.print("\u001B[?25l");
     }
@@ -228,7 +228,7 @@ public final class CliStyle {
         System.out.print("\u001B[?25h");
     }
     
-    // 清除行
+    // Clear line
     public static void clearLine() {
         System.out.print("\u001B[2K");
     }
@@ -237,7 +237,7 @@ public final class CliStyle {
         System.out.print("\u001B[0K");
     }
     
-    // 加载动画帧
+    // Loading animation frames
     public static final String[] SPINNER = {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"};
     public static final String[] DOTS = {"⢀", "⢠", "⢰", "⢸", "⡸", "⣸", "⣴", "⣤"};
 }

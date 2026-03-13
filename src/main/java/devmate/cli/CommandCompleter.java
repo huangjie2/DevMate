@@ -14,11 +14,11 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * 命令补全器
- * 支持：
- * - / 命令补全
- * - @ 文件路径补全
- * - skill 名称补全
+ * Command Completer
+ * Supports:
+ * - / command completion
+ * - @ file path completion
+ * - skill name completion
  */
 public class CommandCompleter implements Completer {
 
@@ -43,29 +43,29 @@ public class CommandCompleter implements Completer {
             return;
         }
 
-        // 查找当前光标所在的单词
+        // Find current word at cursor
         String currentWord = getCurrentWord(buffer, cursor);
 
-        // 1. 命令补全 (/)
+        // 1. Command completion (/)
         if (currentWord.startsWith("/") || buffer.trim().startsWith("/")) {
             completeCommand(currentWord, candidates);
             return;
         }
 
-        // 2. 文件引用补全 (@)
+        // 2. File reference completion (@)
         if (currentWord.startsWith("@") || isInFileReference(buffer, cursor)) {
             completeFileReference(buffer, cursor, currentWord, candidates);
             return;
         }
 
-        // 3. 技能名称补全（在调用技能时）
-        if (buffer.toLowerCase().contains("use ") || buffer.toLowerCase().contains("调用 ")) {
+        // 3. Skill name completion (when calling skills)
+        if (buffer.toLowerCase().contains("use ")) {
             completeSkillName(currentWord, candidates);
         }
     }
 
     /**
-     * 获取当前光标所在的单词
+     * Get current word at cursor position
      */
     private String getCurrentWord(String buffer, int cursor) {
         int start = cursor;
@@ -76,14 +76,14 @@ public class CommandCompleter implements Completer {
     }
 
     /**
-     * 检查光标是否在文件引用中
+     * Check if cursor is in file reference
      */
     private boolean isInFileReference(String buffer, int cursor) {
-        // 向前查找最近的 @ 符号
+        // Find nearest @ symbol going backwards
         for (int i = cursor - 1; i >= 0; i--) {
             char c = buffer.charAt(i);
             if (c == '@') {
-                // 检查 @ 后面到光标之间是否有空格
+                // Check if there's whitespace between @ and cursor
                 String afterAt = buffer.substring(i + 1, cursor);
                 return !afterAt.contains(" ") && !afterAt.contains("\t");
             }
@@ -95,7 +95,7 @@ public class CommandCompleter implements Completer {
     }
 
     /**
-     * 命令补全
+     * Command completion
      */
     private void completeCommand(String currentWord, List<Candidate> candidates) {
         String prefix = currentWord.isEmpty() ? "/" : currentWord;
@@ -111,19 +111,19 @@ public class CommandCompleter implements Completer {
     }
 
     /**
-     * 文件引用补全
+     * File reference completion
      */
     private void completeFileReference(String buffer, int cursor, String currentWord, List<Candidate> candidates) {
-        // 找到 @ 的位置
+        // Find @ position
         int atIndex = buffer.lastIndexOf('@', cursor);
         if (atIndex < 0) {
             return;
         }
 
-        // 获取 @ 后面的路径部分
+        // Get path part after @
         String pathAfterAt = buffer.substring(atIndex + 1, cursor);
         
-        // 解析目录和文件前缀
+        // Parse directory and file prefix
         Path dir;
         String prefix;
         
@@ -136,7 +136,7 @@ public class CommandCompleter implements Completer {
             prefix = pathAfterAt;
         }
 
-        // 列出目录下的匹配文件
+        // List matching files in directory
         if (Files.isDirectory(dir)) {
             try (Stream<Path> stream = Files.list(dir)) {
                 stream.filter(p -> {
@@ -146,7 +146,7 @@ public class CommandCompleter implements Completer {
                     String name = p.getFileName().toString();
                     String fullPath = "@" + projectRoot.relativize(p);
                     
-                    // 构建候选补全
+                    // Build completion candidate
                     String display = name;
                     String desc = Files.isDirectory(p) ? "/" : "";
                     
@@ -161,13 +161,13 @@ public class CommandCompleter implements Completer {
                     ));
                 });
             } catch (IOException e) {
-                // 忽略错误
+                // Ignore errors
             }
         }
     }
 
     /**
-     * 技能名称补全
+     * Skill name completion
      */
     private void completeSkillName(String currentWord, List<Candidate> candidates) {
         String lowerWord = currentWord.toLowerCase();

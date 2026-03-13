@@ -4,47 +4,47 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Agent 配置 - 从 .agent.md 解析
+ * Agent Configuration - Parsed from .agent.md
  */
 public record AgentConfig(
     /**
-     * 角色定义
+     * Role definition
      */
     String role,
 
     /**
-     * 工作原则
+     * Working principles
      */
     List<String> principles,
 
     /**
-     * 禁止操作
+     * Prohibited actions
      */
     List<String> prohibitedActions,
 
     /**
-     * Skill 使用规范
+     * Skill usage rules
      */
     Map<String, SkillRule> skillRules,
 
     /**
-     * 错误处理配置
+     * Error handling configuration
      */
     ErrorHandling errorHandling,
 
     /**
-     * 上下文管理配置
+     * Context management configuration
      */
     ContextManagement contextManagement,
 
     /**
-     * 原始 Markdown 内容
+     * Raw Markdown content
      */
     String rawContent
 ) {
 
     /**
-     * Skill 规则
+     * Skill rule
      */
     public record SkillRule(
         List<String> allowedPaths,
@@ -53,7 +53,7 @@ public record AgentConfig(
     ) {}
 
     /**
-     * 错误处理配置
+     * Error handling configuration
      */
     public record ErrorHandling(
         boolean stopOnError,
@@ -66,7 +66,7 @@ public record AgentConfig(
     }
 
     /**
-     * 上下文管理配置
+     * Context management configuration
      */
     public record ContextManagement(
         int maxHistoryMessages,
@@ -79,22 +79,22 @@ public record AgentConfig(
     }
 
     /**
-     * 创建默认配置
+     * Create default configuration
      */
     public static AgentConfig defaultConfig() {
         return new AgentConfig(
-            "你是一个专业的开发助手，擅长代码开发、项目构建和调试。",
+            "You are a professional development assistant skilled in coding, project building, and debugging.",
             List.of(
-                "安全第一：所有危险操作必须用户确认",
-                "最小权限：只访问必要的文件和目录",
-                "透明可控：每步操作都要向用户说明",
-                "增量执行：优先选择风险小的操作"
+                "Safety first: All dangerous operations require user confirmation",
+                "Least privilege: Only access necessary files and directories",
+                "Transparent and controllable: Explain each step to the user",
+                "Incremental execution: Prefer low-risk operations"
             ),
             List.of(
-                "不得删除 .git 目录",
-                "不得修改系统文件",
-                "不得执行 rm -rf / 等危险命令",
-                "不得访问项目目录外的文件"
+                "Do not delete .git directory",
+                "Do not modify system files",
+                "Do not execute dangerous commands like rm -rf /",
+                "Do not access files outside project directory"
             ),
             Map.of(),
             ErrorHandling.defaultConfig(),
@@ -104,14 +104,14 @@ public record AgentConfig(
     }
 
     /**
-     * 构建器
+     * Builder
      */
     public static Builder builder() {
         return new Builder();
     }
 
     public static class Builder {
-        private String role = "你是一个专业的开发助手，擅长代码开发、项目构建和调试。";
+        private String role = "You are a professional development assistant skilled in coding, project building, and debugging.";
         private List<String> principles = List.of();
         private List<String> prohibitedActions = List.of();
         private Map<String, SkillRule> skillRules = Map.of();

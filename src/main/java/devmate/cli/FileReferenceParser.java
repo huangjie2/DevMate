@@ -13,21 +13,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 文件引用解析器
+ * File Reference Parser
  * 
- * 支持格式：
- * - @filename        引用单个文件
- * - @path/to/file    引用相对路径文件
- * - @/absolute/path  引用绝对路径文件
- * - @.               引用整个项目目录结构
+ * Supported formats:
+ * - @filename        Reference single file
+ * - @path/to/file    Reference relative path file
+ * - @/absolute/path  Reference absolute path file
+ * - @.               Reference entire project directory structure
  * 
- * 示例：
- * - "帮我分析 @src/main/java/App.java 这个文件"
- * - "对比 @file1.java 和 @file2.java 的区别"
+ * Examples:
+ * - "Analyze @src/main/java/App.java"
+ * - "Compare @file1.java and @file2.java"
  */
 public class FileReferenceParser {
 
-    // 匹配 @文件引用 的正则
+    // Regex to match @file references
     private static final Pattern FILE_REFERENCE_PATTERN = Pattern.compile(
         "@([\\w./\\-~]+)"
     );
@@ -41,29 +41,29 @@ public class FileReferenceParser {
     }
 
     /**
-     * 解析结果
+     * Parse result
      */
     public record ParseResult(
-        String processedInput,      // 处理后的输入（文件引用被替换为内容）
-        List<FileReference> references  // 解析出的文件引用列表
+        String processedInput,      // Processed input (file references replaced with content)
+        List<FileReference> references  // List of parsed file references
     ) {}
 
     /**
-     * 文件引用信息
+     * File reference information
      */
     public record FileReference(
-        String reference,       // 原始引用（如 @src/App.java）
-        String path,            // 实际路径
-        String content,         // 文件内容
-        boolean success,        // 是否成功读取
-        String error            // 错误信息（如果失败）
+        String reference,       // Original reference (e.g. @src/App.java)
+        String path,            // Actual path
+        String content,         // File content
+        boolean success,        // Whether read successfully
+        String error            // Error message (if failed)
     ) {}
 
     /**
-     * 解析输入中的文件引用
+     * Parse file references in input
      * 
-     * @param input 用户输入
-     * @return 解析结果
+     * @param input User input
+     * @return Parse result
      */
     public ParseResult parse(String input) {
         List<FileReference> references = new ArrayList<>();
@@ -80,12 +80,12 @@ public class FileReferenceParser {
             references.add(ref);
 
             if (ref.success()) {
-                // 替换为文件内容块
+                // Replace with file content block
                 String replacement = formatFileContent(ref);
                 matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
             } else {
-                // 保留原始引用，添加错误注释
-                String replacement = reference + " [错误: " + ref.error() + "]";
+                // Keep original reference, add error comment
+                String replacement = reference + " [Error: " + ref.error() + "]";
                 matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
             }
         }
@@ -99,25 +99,25 @@ public class FileReferenceParser {
     }
 
     /**
-     * 解析单个文件引用
+     * Resolve single file reference
      */
     private FileReference resolveReference(String pathStr) {
-        // 特殊处理: @. 表示项目根目录
+        // Special handling: @. means project root
         if (".".equals(pathStr)) {
             return resolveProjectStructure();
         }
 
-        // 构建完整路径
+        // Build full path
         Path path;
         if (pathStr.startsWith("/")) {
-            // 绝对路径
+            // Absolute path
             path = Path.of(pathStr);
         } else {
-            // 相对路径
+            // Relative path
             path = projectRoot.resolve(pathStr);
         }
 
-        // 安全校验
+        // Security validation
         Result<Path> validationResult = pathValidator.validate(path.toString());
         if (validationResult.isFailure()) {
             return new FileReference(
@@ -129,23 +129,23 @@ public class FileReferenceParser {
             );
         }
 
-        // 检查是否存在
+        // Check if exists
         if (!Files.exists(path)) {
             return new FileReference(
                 "@" + pathStr,
                 path.toString(),
                 null,
                 false,
-                "文件不存在"
+                "File not found"
             );
         }
 
-        // 检查是否为目录
+        // Check if directory
         if (Files.isDirectory(path)) {
             return resolveDirectory(pathStr, path);
         }
 
-        // 读取文件内容
+        // Read file content
         try {
             String content = Files.readString(path);
             Log.infof("Read file reference: %s (%d bytes)", pathStr, content.length());
@@ -162,20 +162,20 @@ public class FileReferenceParser {
                 path.toString(),
                 null,
                 false,
-                "读取失败: " + e.getMessage()
+                "Failed to read: " + e.getMessage()
             );
         }
     }
 
     /**
-     * 解析目录结构
+     * Resolve directory structure
      */
     private FileReference resolveDirectory(String pathStr, Path path) {
         StringBuilder sb = new StringBuilder();
-        sb.append("目录 ").append(pathStr).append(" 结构:\n\n");
+        sb.append("Directory ").append(pathStr).append(" structure:\n\n");
 
         try {
-            Files.walk(path, 3)  // 最多 3 层
+            Files.walk(path, 3)  // Max 3 levels
                 .filter(p -> !p.equals(path))
                 .filter(p -> !p.getFileName().toString().startsWith("."))
                 .forEach(p -> {
@@ -190,7 +190,7 @@ public class FileReferenceParser {
                 path.toString(),
                 null,
                 false,
-                "读取目录失败: " + e.getMessage()
+                "Failed to read directory: " + e.getMessage()
             );
         }
 
@@ -204,11 +204,11 @@ public class FileReferenceParser {
     }
 
     /**
-     * 解析项目根目录结构 (@.)
+     * Resolve project root structure (@.)
      */
     private FileReference resolveProjectStructure() {
         StringBuilder sb = new StringBuilder();
-        sb.append("项目结构:\n\n");
+        sb.append("Project structure:\n\n");
 
         try {
             Files.walk(projectRoot, 2)
@@ -228,7 +228,7 @@ public class FileReferenceParser {
                 projectRoot.toString(),
                 null,
                 false,
-                "读取项目结构失败: " + e.getMessage()
+                "Failed to read project structure: " + e.getMessage()
             );
         }
 
@@ -242,25 +242,25 @@ public class FileReferenceParser {
     }
 
     /**
-     * 格式化文件内容为提示词格式
+     * Format file content for prompt
      */
     private String formatFileContent(FileReference ref) {
         return String.format(
-            "\n--- 文件: %s ---\n%s\n--- 文件结束 ---\n",
+            "\n--- File: %s ---\n%s\n--- End of file ---\n",
             ref.path(),
             ref.content()
         );
     }
 
     /**
-     * 检查输入中是否包含文件引用
+     * Check if input contains file references
      */
     public boolean hasFileReference(String input) {
         return FILE_REFERENCE_PATTERN.matcher(input).find();
     }
 
     /**
-     * 提取所有文件引用路径
+     * Extract all file reference paths
      */
     public List<String> extractFilePaths(String input) {
         List<String> paths = new ArrayList<>();

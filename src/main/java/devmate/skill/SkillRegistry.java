@@ -12,9 +12,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * Skill 注册中心
+ * Skill Registry
  * 
- * 负责管理所有 Skill 的注册、发现和调用
+ * Manages registration, discovery and invocation of all Skills
  */
 @ApplicationScoped
 public class SkillRegistry {
@@ -22,9 +22,9 @@ public class SkillRegistry {
     private final Map<String, Skill> skills = new ConcurrentHashMap<>();
 
     /**
-     * 注册 Skill
+     * Register Skill
      * 
-     * @param skill Skill 实例
+     * @param skill Skill instance
      */
     public void register(Skill skill) {
         String name = skill.name();
@@ -36,10 +36,10 @@ public class SkillRegistry {
     }
 
     /**
-     * 注销 Skill
+     * Unregister Skill
      * 
-     * @param name Skill 名称
-     * @return 是否注销成功
+     * @param name Skill name
+     * @return Whether unregistration was successful
      */
     public boolean unregister(String name) {
         Skill removed = skills.remove(name);
@@ -51,38 +51,38 @@ public class SkillRegistry {
     }
 
     /**
-     * 查找 Skill
+     * Find Skill
      * 
-     * @param name Skill 名称
-     * @return Skill 实例（可选）
+     * @param name Skill name
+     * @return Skill instance (optional)
      */
     public Optional<Skill> find(String name) {
         return Optional.ofNullable(skills.get(name));
     }
 
     /**
-     * 检查 Skill 是否存在
+     * Check if Skill exists
      * 
-     * @param name Skill 名称
-     * @return 是否存在
+     * @param name Skill name
+     * @return Whether exists
      */
     public boolean exists(String name) {
         return skills.containsKey(name);
     }
 
     /**
-     * 获取所有 Skill
+     * Get all Skills
      * 
-     * @return Skill 列表
+     * @return Skill list
      */
     public List<Skill> allSkills() {
         return List.copyOf(skills.values());
     }
 
     /**
-     * 获取所有启用的 Skill
+     * Get all enabled Skills
      * 
-     * @return 启用的 Skill 列表
+     * @return Enabled Skill list
      */
     public List<Skill> enabledSkills() {
         return skills.values().stream()
@@ -91,10 +91,10 @@ public class SkillRegistry {
     }
 
     /**
-     * 按类别获取 Skill
+     * Get Skills by category
      * 
-     * @param category 类别名称
-     * @return Skill 列表
+     * @param category Category name
+     * @return Skill list
      */
     public List<Skill> byCategory(String category) {
         return skills.values().stream()
@@ -103,16 +103,16 @@ public class SkillRegistry {
     }
 
     /**
-     * 获取 Skill 数量
+     * Get Skill count
      * 
-     * @return Skill 数量
+     * @return Skill count
      */
     public int size() {
         return skills.size();
     }
 
     /**
-     * 清空所有 Skill
+     * Clear all Skills
      */
     public void clear() {
         skills.clear();
@@ -120,9 +120,9 @@ public class SkillRegistry {
     }
 
     /**
-     * 生成给 LLM 的工具列表描述
+     * Generate tool list description for LLM
      * 
-     * @return 格式化的工具描述
+     * @return Formatted tool description
      */
     public String toToolsDescription() {
         return skills.values().stream()
@@ -145,9 +145,9 @@ public class SkillRegistry {
     }
 
     /**
-     * 生成 OpenAI Function Calling 格式的工具定义
+     * Generate OpenAI Function Calling format tool definitions
      * 
-     * @return OpenAI 工具定义列表
+     * @return OpenAI tool definition list
      */
     public List<Map<String, Object>> toOpenAiTools() {
         return skills.values().stream()

@@ -13,18 +13,18 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * 自动建议提供器
- * 实时显示匹配的命令/文件，类似 iFlow 体验
+ * Auto Suggestion Provider
+ * Real-time display of matching commands/files, similar to iFlow experience
  */
 public class AutoSuggestionProvider {
 
     public static final List<Suggestion> BUILTIN_COMMANDS = List.of(
-        new Suggestion("/help", "显示帮助信息", "h"),
-        new Suggestion("/exit", "退出程序", "q", "quit"),
-        new Suggestion("/reset", "清空对话上下文", null),
-        new Suggestion("/skills", "列出可用的技能", null),
-        new Suggestion("/config", "显示当前配置", null),
-        new Suggestion("/clear", "清屏", null)
+        new Suggestion("/help", "Show help", "h"),
+        new Suggestion("/exit", "Exit program", "q", "quit"),
+        new Suggestion("/reset", "Clear conversation context", null),
+        new Suggestion("/skills", "List available skills", null),
+        new Suggestion("/config", "Show current configuration", null),
+        new Suggestion("/clear", "Clear screen", null)
     );
 
     private final SkillRegistry skillRegistry;
@@ -36,13 +36,13 @@ public class AutoSuggestionProvider {
     }
 
     /**
-     * 建议项
+     * Suggestion item
      */
     public record Suggestion(
-        String value,       // 实际值
-        String description, // 描述
-        String alias,       // 别名
-        String... aliases   // 其他别名
+        String value,       // Actual value
+        String description, // Description
+        String alias,       // Alias
+        String... aliases   // Other aliases
     ) {
         public boolean matches(String input) {
             String lower = input.toLowerCase();
@@ -58,7 +58,7 @@ public class AutoSuggestionProvider {
     }
 
     /**
-     * 获取所有匹配的建议
+     * Get all matching suggestions
      */
     public List<SuggestionResult> getSuggestions(String input, int cursor) {
         List<SuggestionResult> results = new ArrayList<>();
@@ -69,24 +69,24 @@ public class AutoSuggestionProvider {
 
         String currentWord = getCurrentWord(input, cursor);
         
-        // 命令建议 (/)
+        // Command suggestions (/)
         if (currentWord.startsWith("/")) {
             results.addAll(getCommandSuggestions(currentWord));
         }
-        // 文件建议 (@)
+        // File suggestions (@)
         else if (currentWord.startsWith("@")) {
             results.addAll(getFileSuggestions(currentWord));
         }
-        // 空输入时显示所有命令
+        // Show all commands when empty input
         else if (currentWord.isEmpty() && input.endsWith(" ")) {
-            // 可以在这里提供上下文相关的建议
+            // Can provide context-aware suggestions here
         }
 
         return results;
     }
 
     /**
-     * 获取当前光标所在的单词
+     * Get current word at cursor position
      */
     private String getCurrentWord(String buffer, int cursor) {
         int start = cursor;
@@ -97,7 +97,7 @@ public class AutoSuggestionProvider {
     }
 
     /**
-     * 获取命令建议
+     * Get command suggestions
      */
     private List<SuggestionResult> getCommandSuggestions(String prefix) {
         List<SuggestionResult> results = new ArrayList<>();
@@ -117,12 +117,12 @@ public class AutoSuggestionProvider {
     }
 
     /**
-     * 获取文件建议
+     * Get file suggestions
      */
     private List<SuggestionResult> getFileSuggestions(String currentWord) {
         List<SuggestionResult> results = new ArrayList<>();
         
-        // 提取 @ 后面的路径部分
+        // Extract path part after @
         String pathPart = currentWord.substring(1);
         
         Path dir;
@@ -142,7 +142,7 @@ public class AutoSuggestionProvider {
                 stream
                     .filter(p -> !p.getFileName().toString().startsWith("."))
                     .filter(p -> prefix.isEmpty() || p.getFileName().toString().startsWith(prefix))
-                    .limit(20)  // 限制数量
+                    .limit(20)  // Limit count
                     .forEach(p -> {
                         String name = p.getFileName().toString();
                         boolean isDir = Files.isDirectory(p);
@@ -150,13 +150,13 @@ public class AutoSuggestionProvider {
                         
                         results.add(new SuggestionResult(
                             "@" + relativePath,
-                            isDir ? "目录" : "文件",
+                            isDir ? "Directory" : "File",
                             name + (isDir ? "/" : ""),
                             "file"
                         ));
                     });
             } catch (IOException e) {
-                // 忽略
+                // Ignore
             }
         }
         
@@ -164,12 +164,12 @@ public class AutoSuggestionProvider {
     }
 
     /**
-     * 建议结果
+     * Suggestion result
      */
     public record SuggestionResult(
-        String value,       // 完整值（用于替换）
-        String description, // 描述
-        String display,     // 显示文本
-        String type         // 类型: command, file
+        String value,       // Full value (for replacement)
+        String description, // Description
+        String display,     // Display text
+        String type         // Type: command, file
     ) {}
 }

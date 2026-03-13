@@ -29,10 +29,10 @@ import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
 
 /**
- * ReactAgent 实现
+ * ReactAgent Implementation
  * 
- * 基于 ReAct（Reasoning and Acting）模式的 Agent 实现
- * 支持规划模式：先分析任务、生成待办列表、再逐步执行
+ * Based on ReAct (Reasoning and Acting) pattern
+ * Supports planning mode: analyze task, generate todo list, then execute step by step
  */
 @ApplicationScoped
 public class ReactAgent implements Agent {
@@ -53,60 +53,60 @@ public class ReactAgent implements Agent {
     private int maxIterations = 10;
     private boolean initialized = false;
     
-    // 当前任务计划
+    // Current task plan
     private List<TaskPlan> currentPlan = new ArrayList<>();
     private int currentStep = 0;
 
     @Override
     public Result<AgentOutput> run(String userInput) {
-        // 初始化系统提示
+        // Initialize system prompt
         if (!initialized) {
             initializeSystemPrompt();
             initialized = true;
         }
 
-        // 添加用户输入
+        // Add user input
         history.add(UserMessage.from(userInput));
 
         int steps = 0;
         int toolCalls = 0;
 
         try {
-            // ReAct 循环
+            // ReAct loop
             for (int i = 0; i < maxIterations; i++) {
                 steps++;
                 Log.debugf("Agent iteration %d/%d", i + 1, maxIterations);
 
-                // 调用 LLM
+                // Call LLM
                 Response<AiMessage> response = chatModel.generate(new ArrayList<>(history));
                 AiMessage aiMessage = response.content();
                 history.add(aiMessage);
 
-                // 检查是否有工具调用
+                // Check if there are tool calls
                 if (aiMessage.hasToolExecutionRequests()) {
-                    // 处理所有工具调用
+                    // Process all tool calls
                     for (ToolExecutionRequest request : aiMessage.toolExecutionRequests()) {
                         toolCalls++;
                         Result<String> toolResult = executeTool(request.name(), request.arguments());
                         
                         String observation = toolResult.isSuccess() 
                             ? toolResult.getOrThrow() 
-                            : "错误: " + ((Result.Failure<?>) toolResult).error();
+                            : "Error: " + ((Result.Failure<?>) toolResult).error();
                         
                         history.add(ToolExecutionResultMessage.from(request, observation));
                     }
                 } else {
-                    // 没有工具调用，任务完成
+                    // No tool calls, task complete
                     return Result.success(AgentOutput.success(aiMessage.text(), steps, toolCalls));
                 }
             }
 
-            // 达到最大迭代次数
-            return Result.failure("达到最大迭代次数限制 (" + maxIterations + ")");
+            // Reached max iterations
+            return Result.failure("Maximum iteration limit reached (" + maxIterations + ")");
             
         } catch (Exception e) {
             Log.errorf(e, "Agent execution failed");
-            return Result.failure("Agent 执行失败: " + e.getMessage());
+            return Result.failure("Agent execution failed: " + e.getMessage());
         }
     }
 
@@ -114,10 +114,10 @@ public class ReactAgent implements Agent {
     public Flow.Publisher<AgentEvent> runStream(String userInput) {
         SubmissionPublisher<AgentEvent> publisher = new SubmissionPublisher<>();
 
-        // 异步执行
+        // Async execution
         new Thread(() -> {
             try {
-                // 初始化系统提示
+                // Initialize system prompt
                 if (!initialized) {
                     initializeSystemPrompt();
                     initialized = true;
@@ -130,22 +130,22 @@ public class ReactAgent implements Agent {
                     AiMessage aiMessage = response.content();
                     history.add(aiMessage);
 
-                    // 发布思考事件
+                    // Publish thinking event
                     if (aiMessage.text() != null && !aiMessage.text().isBlank()) {
                         publisher.submit(new AgentEvent.Thinking(aiMessage.text()));
                     }
 
                     if (aiMessage.hasToolExecutionRequests()) {
                         for (ToolExecutionRequest request : aiMessage.toolExecutionRequests()) {
-                            // 发布工具调用事件
+                            // Publish tool call event
                             @SuppressWarnings("unchecked")
                             Map<String, Object> params = JsonMapper.fromJson(request.arguments(), Map.class);
                             publisher.submit(new AgentEvent.ToolCall(request.name(), new SkillInput(params)));
 
-                            // 执行工具
+                            // Execute tool
                             Result<String> toolResult = executeTool(request.name(), request.arguments());
                             
-                            // 发布工具结果事件
+                            // Publish tool result event
                             if (toolResult.isSuccess()) {
                                 publisher.submit(new AgentEvent.ToolResult(
                                     request.name(), 
@@ -155,12 +155,12 @@ public class ReactAgent implements Agent {
                             
                             String observation = toolResult.isSuccess() 
                                 ? toolResult.getOrThrow() 
-                                : "错误: " + ((Result.Failure<?>) toolResult).error();
+                                : "Error: " + ((Result.Failure<?>) toolResult).error();
                             
                             history.add(ToolExecutionResultMessage.from(request, observation));
                         }
                     } else {
-                        // 完成
+                        // Complete
                         publisher.submit(new AgentEvent.FinalAnswer(aiMessage.text()));
                         break;
                     }
@@ -199,7 +199,7 @@ public class ReactAgent implements Agent {
     }
 
     /**
-     * 初始化系统提示
+     * Initialize system prompt
      */
     private void initializeSystemPrompt() {
         String systemPrompt = buildSystemPrompt();
@@ -208,122 +208,122 @@ public class ReactAgent implements Agent {
     }
 
     /**
-     * 构建系统提示
+     * Build system prompt
      */
     private String buildSystemPrompt() {
         StringBuilder prompt = new StringBuilder();
 
-        // 加载配置
+        // Load config
         AgentConfig agentConfig = configLoader.loadAgentConfig().orElse(AgentConfig.defaultConfig());
         ProjectConfig projectConfig = configLoader.loadClaudeConfig().orElse(ProjectConfig.defaultConfig());
 
-        // Agent 角色
-        prompt.append("# 角色定义\n\n");
+        // Agent role
+        prompt.append("# Role Definition\n\n");
         prompt.append(agentConfig.role()).append("\n\n");
 
-        // 项目信息
-        prompt.append("# 项目信息\n\n");
-        prompt.append("- 名称: ").append(projectConfig.name()).append("\n");
-        prompt.append("- 类型: ").append(projectConfig.type()).append("\n");
+        // Project info
+        prompt.append("# Project Information\n\n");
+        prompt.append("- Name: ").append(projectConfig.name()).append("\n");
+        prompt.append("- Type: ").append(projectConfig.type()).append("\n");
         if (!projectConfig.techStack().isEmpty()) {
-            prompt.append("- 技术栈: ").append(String.join(", ", projectConfig.techStack())).append("\n");
+            prompt.append("- Tech Stack: ").append(String.join(", ", projectConfig.techStack())).append("\n");
         }
         prompt.append("\n");
 
-        // 可用工具
-        prompt.append("# 可用工具\n\n");
+        // Available tools
+        prompt.append("# Available Tools\n\n");
         prompt.append(skillRegistry.toToolsDescription()).append("\n");
 
-        // 工作原则
+        // Working principles
         if (!agentConfig.principles().isEmpty()) {
-            prompt.append("# 工作原则\n\n");
+            prompt.append("# Working Principles\n\n");
             for (String principle : agentConfig.principles()) {
                 prompt.append("- ").append(principle).append("\n");
             }
             prompt.append("\n");
         }
 
-        // 禁止操作
+        // Prohibited actions
         if (!agentConfig.prohibitedActions().isEmpty()) {
-            prompt.append("# 禁止操作\n\n");
+            prompt.append("# Prohibited Actions\n\n");
             for (String action : agentConfig.prohibitedActions()) {
                 prompt.append("- ").append(action).append("\n");
             }
             prompt.append("\n");
         }
 
-        // ReAct 指令
-        prompt.append("# 执行模式\n\n");
-        prompt.append("你是一个基于 ReAct (Reasoning and Acting) 模式的 AI Agent。\n\n");
+        // ReAct instructions
+        prompt.append("# Execution Mode\n\n");
+        prompt.append("You are an AI Agent based on ReAct (Reasoning and Acting) pattern.\n\n");
         
-        // 规划模式
-        prompt.append("## 任务规划\n\n");
-        prompt.append("对于复杂的、多步骤的任务，你必须先规划后执行：\n\n");
-        prompt.append("**第一步：生成待办列表**\n");
-        prompt.append("在执行任何操作前，先输出任务计划：\n");
+        // Planning mode
+        prompt.append("## Task Planning\n\n");
+        prompt.append("For complex, multi-step tasks, you must plan first, then execute:\n\n");
+        prompt.append("**Step 1: Generate Todo List**\n");
+        prompt.append("Before executing any operation, output the task plan:\n");
         prompt.append("```\n");
-        prompt.append("📋 **任务计划**\n");
-        prompt.append("- [ ] 1. 第一步描述\n");
-        prompt.append("- [ ] 2. 第二步描述\n");
+        prompt.append("📋 **Task Plan**\n");
+        prompt.append("- [ ] 1. First step description\n");
+        prompt.append("- [ ] 2. Second step description\n");
         prompt.append("...\n");
         prompt.append("```\n\n");
-        prompt.append("**第二步：逐步执行**\n");
-        prompt.append("按照计划逐步执行，每完成一步更新状态：\n");
+        prompt.append("**Step 2: Execute Step by Step**\n");
+        prompt.append("Follow the plan, update status after each step:\n");
         prompt.append("```\n");
-        prompt.append("- [x] 1. 第一步描述 ✓ 已完成\n");
-        prompt.append("- [ ] 2. 正在执行...\n");
+        prompt.append("- [x] 1. First step description ✓ Completed\n");
+        prompt.append("- [ ] 2. Currently executing...\n");
         prompt.append("```\n\n");
-        prompt.append("**第三步：汇总结果**\n");
-        prompt.append("所有步骤完成后，给出最终答案。\n\n");
+        prompt.append("**Step 3: Summarize Results**\n");
+        prompt.append("After all steps complete, provide the final answer.\n\n");
         
-        prompt.append("## 单步任务\n");
-        prompt.append("对于简单的、单步骤的任务，可以直接执行，无需规划。\n\n");
+        prompt.append("## Single-Step Tasks\n");
+        prompt.append("For simple, single-step tasks, execute directly without planning.\n\n");
         
-        prompt.append("请始终保持专业、安全、透明的态度。执行任何危险操作前必须确认。");
+        prompt.append("Always maintain a professional, safe, and transparent attitude. Confirm before executing any dangerous operations.");
 
         return prompt.toString();
     }
 
     /**
-     * 执行工具
+     * Execute tool
      */
     private Result<String> executeTool(String name, String arguments) {
         Log.infof("Executing tool: %s with arguments: %s", name, arguments);
 
-        // 查找 Skill
+        // Find Skill
         return skillRegistry.find(name)
             .map(skill -> {
-                // 解析参数
+                // Parse arguments
                 SkillInput input;
                 try {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> params = JsonMapper.fromJson(arguments, Map.class);
                     input = new SkillInput(params);
                 } catch (Exception e) {
-                    return Result.<String>failure("参数解析失败: " + e.getMessage());
+                    return Result.<String>failure("Failed to parse arguments: " + e.getMessage());
                 }
 
-                // 参数校验
+                // Validate arguments
                 Result<Void> validation = skill.validate(input);
                 if (validation.isFailure()) {
-                    return Result.<String>failure("参数校验失败: " + ((Result.Failure<?>) validation).error());
+                    return Result.<String>failure("Argument validation failed: " + ((Result.Failure<?>) validation).error());
                 }
 
-                // 危险操作确认
+                // Confirm dangerous operations
                 if (skill.requiresConfirmation()) {
                     boolean confirmed = userConfirmation.ask(
-                        "工具 '" + name + "' 需要确认，是否继续？\n参数: " + arguments
+                        "Tool '" + name + "' requires confirmation. Continue?\nArguments: " + arguments
                     );
                     if (!confirmed) {
-                        return Result.<String>failure("用户取消操作");
+                        return Result.<String>failure("User cancelled operation");
                     }
                 }
 
-                // 执行 Skill
+                // Execute Skill
                 Result<SkillResult> result = skill.execute(input);
                 
                 return result.map(SkillResult::content);
             })
-            .orElse(Result.failure("未找到工具: " + name));
+            .orElse(Result.failure("Tool not found: " + name));
     }
 }

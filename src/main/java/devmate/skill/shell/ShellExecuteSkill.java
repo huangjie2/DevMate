@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Shell 命令执行 Skill
+ * Shell Command Execution Skill
  */
 @ApplicationScoped
 public class ShellExecuteSkill implements Skill {
@@ -24,7 +24,7 @@ public class ShellExecuteSkill implements Skill {
     @Inject
     CommandBlacklist commandBlacklist;
 
-    private static final long DEFAULT_TIMEOUT = 30_000; // 30 秒
+    private static final long DEFAULT_TIMEOUT = 30_000; // 30 seconds
 
     @Override
     public String name() {
@@ -33,7 +33,7 @@ public class ShellExecuteSkill implements Skill {
 
     @Override
     public String description() {
-        return "执行 Shell 命令。危险命令会被拦截。支持设置工作目录和超时时间。";
+        return "Execute shell commands. Dangerous commands are blocked. Supports working directory and timeout settings.";
     }
 
     @Override
@@ -46,17 +46,17 @@ public class ShellExecuteSkill implements Skill {
         
         var commandProp = factory.objectNode();
         commandProp.put("type", "string");
-        commandProp.put("description", "要执行的命令");
+        commandProp.put("description", "Command to execute");
         properties.set("command", commandProp);
         
         var workdirProp = factory.objectNode();
         workdirProp.put("type", "string");
-        workdirProp.put("description", "工作目录（可选，默认当前目录）");
+        workdirProp.put("description", "Working directory (optional, default: current directory)");
         properties.set("workdir", workdirProp);
         
         var timeoutProp = factory.objectNode();
         timeoutProp.put("type", "integer");
-        timeoutProp.put("description", "超时时间（毫秒，可选，默认 30000）");
+        timeoutProp.put("description", "Timeout in milliseconds (optional, default: 30000)");
         properties.set("timeout", timeoutProp);
         
         schema.set("properties", properties);
@@ -70,7 +70,7 @@ public class ShellExecuteSkill implements Skill {
 
     @Override
     public boolean requiresConfirmation() {
-        return true; // Shell 命令总是需要确认
+        return true; // Shell commands always require confirmation
     }
 
     @Override
@@ -85,10 +85,10 @@ public class ShellExecuteSkill implements Skill {
         Long timeout = input.getLong("timeout");
 
         if (command == null || command.isBlank()) {
-            return Result.failure("命令不能为空");
+            return Result.failure("Command cannot be empty");
         }
 
-        // 黑名单检查
+        // Blacklist check
         Result<String> validationResult = commandBlacklist.validate(command);
         if (validationResult.isFailure()) {
             return Result.failure(((Result.Failure<String>) validationResult).error());
@@ -97,10 +97,10 @@ public class ShellExecuteSkill implements Skill {
         long actualTimeout = timeout != null ? timeout : DEFAULT_TIMEOUT;
 
         try {
-            // 构建进程
+            // Build process
             ProcessBuilder pb = new ProcessBuilder();
             
-            // 根据操作系统设置 shell
+            // Set shell based on OS
             String os = System.getProperty("os.name").toLowerCase();
             if (os.contains("win")) {
                 pb.command("cmd", "/c", command);
@@ -108,13 +108,13 @@ public class ShellExecuteSkill implements Skill {
                 pb.command("/bin/sh", "-c", command);
             }
 
-            // 设置工作目录
+            // Set working directory
             if (workdir != null && !workdir.isBlank()) {
                 File workDir = new File(workdir);
                 if (workDir.exists() && workDir.isDirectory()) {
                     pb.directory(workDir);
                 } else {
-                    return Result.failure("工作目录不存在或不是目录: " + workdir);
+                    return Result.failure("Working directory does not exist or is not a directory: " + workdir);
                 }
             }
 
@@ -123,24 +123,24 @@ public class ShellExecuteSkill implements Skill {
             Log.infof("Executing command: %s (workdir: %s, timeout: %dms)", 
                 command, pb.directory(), actualTimeout);
 
-            // 启动进程
+            // Start process
             Process process = pb.start();
 
-            // 等待执行完成（带超时）
+            // Wait for completion with timeout
             boolean finished = process.waitFor(actualTimeout, TimeUnit.MILLISECONDS);
             
             if (!finished) {
                 process.destroyForcibly();
-                return Result.failure("命令执行超时（" + actualTimeout + "ms）");
+                return Result.failure("Command execution timeout (" + actualTimeout + "ms)");
             }
 
-            // 读取输出
+            // Read output
             String output = new String(process.getInputStream().readAllBytes());
 
             int exitCode = process.exitValue();
             if (exitCode != 0) {
                 return Result.failure(
-                    "命令执行失败（退出码: " + exitCode + "）\n" + output
+                    "Command execution failed (exit code: " + exitCode + ")\n" + output
                 );
             }
 
@@ -157,7 +157,7 @@ public class ShellExecuteSkill implements Skill {
 
         } catch (Exception e) {
             Log.errorf(e, "Failed to execute command: %s", command);
-            return Result.failure("命令执行异常: " + e.getMessage());
+            return Result.failure("Command execution exception: " + e.getMessage());
         }
     }
 

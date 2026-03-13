@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Git 状态 Skill
+ * Git Status Skill
  */
 @ApplicationScoped
 public class GitStatusSkill implements Skill {
@@ -28,7 +28,7 @@ public class GitStatusSkill implements Skill {
 
     @Override
     public String description() {
-        return "获取 Git 仓库状态，包括当前分支、暂存区和工作区变更。";
+        return "Get Git repository status, including current branch, staging area, and working directory changes.";
     }
 
     @Override
@@ -41,12 +41,12 @@ public class GitStatusSkill implements Skill {
         
         var workdirProp = factory.objectNode();
         workdirProp.put("type", "string");
-        workdirProp.put("description", "工作目录（可选，默认当前目录）");
+        workdirProp.put("description", "Working directory (optional, default: current directory)");
         properties.set("workdir", workdirProp);
         
         var shortProp = factory.objectNode();
         shortProp.put("type", "boolean");
-        shortProp.put("description", "是否使用简短格式");
+        shortProp.put("description", "Use short format");
         shortProp.put("default", false);
         properties.set("short", shortProp);
         
@@ -70,7 +70,7 @@ public class GitStatusSkill implements Skill {
             
             String output = executeGit(workdir, args.toArray(new String[0]));
 
-            // 获取当前分支
+            // Get current branch
             String branch = executeGit(workdir, "branch", "--show-current").trim();
 
             Map<String, Object> metadata = Map.of(
@@ -79,18 +79,18 @@ public class GitStatusSkill implements Skill {
             );
 
             return Result.success(new SkillResult(
-                String.format("当前分支: %s\n\n%s", branch, output),
+                String.format("Current branch: %s\n\n%s", branch, output),
                 metadata
             ));
 
         } catch (Exception e) {
-            return Result.failure("Git 操作失败: " + e.getMessage());
+            return Result.failure("Git operation failed: " + e.getMessage());
         }
     }
 
     @Override
     public boolean requiresConfirmation() {
-        return false; // 只读操作，不需要确认
+        return false; // Read-only operation, no confirmation needed
     }
 
     @Override
@@ -118,13 +118,13 @@ public class GitStatusSkill implements Skill {
         
         if (!finished) {
             process.destroyForcibly();
-            throw new RuntimeException("Git 命令超时");
+            throw new RuntimeException("Git command timeout");
         }
 
         String output = new String(process.getInputStream().readAllBytes());
 
         if (process.exitValue() != 0) {
-            throw new RuntimeException("Git 命令失败:\n" + output);
+            throw new RuntimeException("Git command failed:\n" + output);
         }
 
         return output;

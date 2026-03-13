@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Git 提交 Skill
+ * Git Commit Skill
  */
 @ApplicationScoped
 public class GitCommitSkill implements Skill {
@@ -28,7 +28,7 @@ public class GitCommitSkill implements Skill {
 
     @Override
     public String description() {
-        return "提交暂存区的更改到本地仓库。";
+        return "Commit staged changes to local repository.";
     }
 
     @Override
@@ -41,12 +41,12 @@ public class GitCommitSkill implements Skill {
         
         var messageProp = factory.objectNode();
         messageProp.put("type", "string");
-        messageProp.put("description", "提交信息");
+        messageProp.put("description", "Commit message");
         properties.set("message", messageProp);
         
         var filesProp = factory.objectNode();
         filesProp.put("type", "array");
-        filesProp.put("description", "要提交的文件列表（可选，默认全部暂存）");
+        filesProp.put("description", "List of files to commit (optional, default: all staged)");
         var items = factory.objectNode();
         items.put("type", "string");
         filesProp.set("items", items);
@@ -54,7 +54,7 @@ public class GitCommitSkill implements Skill {
         
         var workdirProp = factory.objectNode();
         workdirProp.put("type", "string");
-        workdirProp.put("description", "工作目录（可选）");
+        workdirProp.put("description", "Working directory (optional)");
         properties.set("workdir", workdirProp);
         
         schema.set("properties", properties);
@@ -68,7 +68,7 @@ public class GitCommitSkill implements Skill {
 
     @Override
     public boolean requiresConfirmation() {
-        return true; // 提交操作需要确认
+        return true; // Commit operation requires confirmation
     }
 
     @Override
@@ -79,7 +79,7 @@ public class GitCommitSkill implements Skill {
         String workdir = input.getString("workdir");
 
         if (message == null || message.isBlank()) {
-            return Result.failure("提交信息不能为空");
+            return Result.failure("Commit message cannot be empty");
         }
 
         try {
@@ -95,7 +95,7 @@ public class GitCommitSkill implements Skill {
             // 2. git commit
             String output = executeGit(workdir, "commit", "-m", message);
 
-            // 获取 commit hash
+            // Get commit hash
             String hash = executeGit(workdir, "rev-parse", "--short", "HEAD").trim();
 
             Map<String, Object> metadata = Map.of(
@@ -107,13 +107,13 @@ public class GitCommitSkill implements Skill {
             Log.infof("Git commit: %s (%s)", hash, message);
 
             return Result.success(new SkillResult(
-                String.format("提交成功: %s\n%s", hash, output),
+                String.format("Commit successful: %s\n%s", hash, output),
                 metadata
             ));
 
         } catch (Exception e) {
             Log.errorf(e, "Git commit failed");
-            return Result.failure("Git 操作失败: " + e.getMessage());
+            return Result.failure("Git operation failed: " + e.getMessage());
         }
     }
 
@@ -142,13 +142,13 @@ public class GitCommitSkill implements Skill {
         
         if (!finished) {
             process.destroyForcibly();
-            throw new RuntimeException("Git 命令超时");
+            throw new RuntimeException("Git command timeout");
         }
 
         String output = new String(process.getInputStream().readAllBytes());
 
         if (process.exitValue() != 0) {
-            throw new RuntimeException("Git 命令失败:\n" + output);
+            throw new RuntimeException("Git command failed:\n" + output);
         }
 
         return output;

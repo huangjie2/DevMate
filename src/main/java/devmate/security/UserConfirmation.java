@@ -10,9 +10,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 
 /**
- * 用户确认工具
+ * User Confirmation Tool
  * 
- * 用于危险操作的交互式确认
+ * Used for interactive confirmation of dangerous operations
  */
 @ApplicationScoped
 public class UserConfirmation {
@@ -21,7 +21,7 @@ public class UserConfirmation {
     private LineReader reader;
 
     /**
-     * 初始化终端
+     * Initialize terminal
      */
     private void initTerminal() {
         if (terminal == null) {
@@ -40,24 +40,24 @@ public class UserConfirmation {
     }
 
     /**
-     * 请求用户确认
+     * Request user confirmation
      * 
-     * @param message 确认消息
-     * @return 用户是否确认
+     * @param message Confirmation message
+     * @return Whether user confirmed
      */
     public boolean ask(String message) {
         return ask(message, false);
     }
 
     /**
-     * 请求用户确认
+     * Request user confirmation
      * 
-     * @param message 确认消息
-     * @param defaultYes 默认是否为 Yes
-     * @return 用户是否确认
+     * @param message Confirmation message
+     * @param defaultYes Default to Yes
+     * @return Whether user confirmed
      */
     public boolean ask(String message, boolean defaultYes) {
-        // 非交互模式下，默认行为
+        // Non-interactive mode, default behavior
         if (!isInteractive()) {
             Log.infof("Non-interactive mode: %s", defaultYes ? "auto-confirming" : "auto-rejecting");
             return defaultYes;
@@ -66,7 +66,7 @@ public class UserConfirmation {
         initTerminal();
 
         String options = defaultYes ? "[Y/n]" : "[y/N]";
-        String prompt = String.format("\n⚠️  %s\n确认执行? %s ", message, options);
+        String prompt = String.format("\n⚠️  %s\nConfirm execution? %s ", message, options);
 
         try {
             String input = reader.readLine(prompt).trim().toLowerCase();
@@ -83,10 +83,10 @@ public class UserConfirmation {
     }
 
     /**
-     * 请求用户输入文本
+     * Request user text input
      * 
-     * @param prompt 提示信息
-     * @return 用户输入
+     * @param prompt Prompt message
+     * @return User input
      */
     public String askInput(String prompt) {
         if (!isInteractive()) {
@@ -105,12 +105,12 @@ public class UserConfirmation {
     }
 
     /**
-     * 请求用户从选项中选择
+     * Request user to select from options
      * 
-     * @param message 消息
-     * @param options 选项列表
-     * @param defaultIndex 默认选项索引
-     * @return 选择的选项索引，-1 表示取消
+     * @param message Message
+     * @param options Options list
+     * @param defaultIndex Default option index
+     * @return Selected option index, -1 means cancelled
      */
     public int askChoice(String message, String[] options, int defaultIndex) {
         if (!isInteractive()) {
@@ -125,11 +125,11 @@ public class UserConfirmation {
         for (int i = 0; i < options.length; i++) {
             sb.append(String.format("  %d. %s", i + 1, options[i]));
             if (i == defaultIndex) {
-                sb.append(" (默认)");
+                sb.append(" (default)");
             }
             sb.append("\n");
         }
-        sb.append("请选择 [1-").append(options.length).append("]: ");
+        sb.append("Select [1-").append(options.length).append("]: ");
 
         try {
             String input = reader.readLine(sb.toString()).trim();
@@ -153,42 +153,42 @@ public class UserConfirmation {
     }
 
     /**
-     * 检查是否为交互式终端
+     * Check if terminal is interactive
      */
     public boolean isInteractive() {
         return System.console() != null;
     }
 
     /**
-     * 显示警告消息
+     * Show warning message
      */
     public void showWarning(String message) {
-        System.err.println("\n⚠️  警告: " + message);
+        System.err.println("\n⚠️  Warning: " + message);
     }
 
     /**
-     * 显示错误消息
+     * Show error message
      */
     public void showError(String message) {
-        System.err.println("\n❌ 错误: " + message);
+        System.err.println("\n❌ Error: " + message);
     }
 
     /**
-     * 显示成功消息
+     * Show success message
      */
     public void showSuccess(String message) {
         System.out.println("\n✅ " + message);
     }
 
     /**
-     * 显示信息消息
+     * Show info message
      */
     public void showInfo(String message) {
         System.out.println("\nℹ️  " + message);
     }
 
     /**
-     * 关闭终端
+     * Close terminal
      */
     public void close() {
         if (terminal != null) {

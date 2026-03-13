@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * 文件列表 Skill
+ * File List Skill
  */
 @ApplicationScoped
 public class FileListSkill implements Skill {
@@ -35,7 +35,7 @@ public class FileListSkill implements Skill {
 
     @Override
     public String description() {
-        return "列出指定目录下的文件和子目录。支持递归列出。";
+        return "List files and subdirectories in a specified directory. Supports recursive listing.";
     }
 
     @Override
@@ -48,19 +48,19 @@ public class FileListSkill implements Skill {
         
         var pathProp = factory.objectNode();
         pathProp.put("type", "string");
-        pathProp.put("description", "目录路径（默认当前目录）");
+        pathProp.put("description", "Directory path (default: current directory)");
         pathProp.put("default", ".");
         properties.set("path", pathProp);
         
         var recursiveProp = factory.objectNode();
         recursiveProp.put("type", "boolean");
-        recursiveProp.put("description", "是否递归列出子目录");
+        recursiveProp.put("description", "Recursively list subdirectories");
         recursiveProp.put("default", false);
         properties.set("recursive", recursiveProp);
         
         var patternProp = factory.objectNode();
         patternProp.put("type", "string");
-        patternProp.put("description", "文件名过滤模式（glob 格式，如 *.java）");
+        patternProp.put("description", "File name filter pattern (glob format, e.g. *.java)");
         properties.set("pattern", patternProp);
         
         schema.set("properties", properties);
@@ -74,7 +74,7 @@ public class FileListSkill implements Skill {
         boolean recursive = input.getBoolean("recursive", false);
         String pattern = input.getString("pattern");
 
-        // 校验路径
+        // Validate path
         Result<Path> pathResult = pathValidator.validate(pathStr);
         if (pathResult.isFailure()) {
             return Result.failure(((Result.Failure<Path>) pathResult).error());
@@ -82,9 +82,9 @@ public class FileListSkill implements Skill {
 
         Path path = pathResult.getOrThrow();
 
-        // 检查是否为目录
+        // Check if it's a directory
         if (!Files.isDirectory(path)) {
-            return Result.failure("路径不是目录: " + path);
+            return Result.failure("Path is not a directory: " + path);
         }
 
         try {
@@ -92,14 +92,14 @@ public class FileListSkill implements Skill {
             
             try (Stream<Path> stream = Files.walk(path, maxDepth)) {
                 List<Map<String, Object>> files = stream
-                    .filter(p -> !p.equals(path)) // 排除根目录
+                    .filter(p -> !p.equals(path)) // Exclude root directory
                     .filter(p -> matchesPattern(p, pattern))
                     .map(this::toFileInfo)
                     .collect(Collectors.toList());
 
-                // 构建输出
+                // Build output
                 StringBuilder content = new StringBuilder();
-                content.append(String.format("目录 %s 内容 (共 %d 项):\n\n", path, files.size()));
+                content.append(String.format("Directory %s contents (%d items):\n\n", path, files.size()));
                 
                 for (Map<String, Object> file : files) {
                     String type = (Boolean) file.get("isDirectory") ? "📁" : "📄";
@@ -123,12 +123,12 @@ public class FileListSkill implements Skill {
 
         } catch (IOException e) {
             Log.errorf(e, "Failed to list directory: %s", path);
-            return Result.failure("列出目录失败: " + e.getMessage());
+            return Result.failure("Failed to list directory: " + e.getMessage());
         }
     }
 
     /**
-     * 检查文件名是否匹配模式
+     * Check if file name matches pattern
      */
     private boolean matchesPattern(Path path, String pattern) {
         if (pattern == null || pattern.isBlank()) {
@@ -140,7 +140,7 @@ public class FileListSkill implements Skill {
     }
 
     /**
-     * Glob 模式转正则表达式
+     * Convert glob pattern to regex
      */
     private String globToRegex(String glob) {
         return glob.replace(".", "\\.")
@@ -149,7 +149,7 @@ public class FileListSkill implements Skill {
     }
 
     /**
-     * 转换为文件信息 Map
+     * Convert path to file info map
      */
     private Map<String, Object> toFileInfo(Path path) {
         boolean isDirectory = Files.isDirectory(path);

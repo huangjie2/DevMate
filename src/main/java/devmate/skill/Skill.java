@@ -5,92 +5,92 @@ import devmate.util.JsonSchemaValidator;
 import devmate.util.Result;
 
 /**
- * Skill 接口 - MCP 标准化原子能力
+ * Skill Interface - MCP Standardized Atomic Capability
  * 
- * Skill 是单一、确定、无自主决策的原子操作单元。
- * 每个 Skill 都有明确的输入输出，可测试、可监控、可复用。
+ * Skill is a single, deterministic, non-autonomous atomic operation unit.
+ * Each Skill has clear input/output, testable, monitorable, and reusable.
  */
 public interface Skill {
 
     /**
-     * Skill 名称（给 LLM 识别使用）
+     * Skill name (for LLM identification)
      * 
-     * @return Skill 名称，建议使用 snake_case 格式
+     * @return Skill name, recommend snake_case format
      */
     String name();
 
     /**
-     * Skill 描述（给 LLM 理解功能使用）
+     * Skill description (for LLM understanding)
      * 
-     * @return Skill 功能描述
+     * @return Skill functionality description
      */
     String description();
 
     /**
-     * 输入参数的 JSON Schema
+     * Input parameter JSON Schema
      * 
-     * @return JSON Schema 节点
+     * @return JSON Schema node
      */
     JsonNode inputSchema();
 
     /**
-     * 参数校验
+     * Parameter validation
      * 
-     * @param input Skill 输入
-     * @return 校验结果
+     * @param input Skill input
+     * @return Validation result
      */
     default Result<Void> validate(SkillInput input) {
         return JsonSchemaValidator.validate(input.toJson(), inputSchema());
     }
 
     /**
-     * 执行 Skill
+     * Execute Skill
      * 
-     * @param input Skill 输入
-     * @return 执行结果
+     * @param input Skill input
+     * @return Execution result
      */
     Result<SkillResult> execute(SkillInput input);
 
     /**
-     * 是否需要用户确认（危险操作）
+     * Whether user confirmation is required (dangerous operations)
      * 
-     * @return true 表示执行前需要用户确认
+     * @return true means user confirmation is required before execution
      */
     default boolean requiresConfirmation() {
         return false;
     }
 
     /**
-     * 执行超时时间（毫秒）
+     * Execution timeout (milliseconds)
      * 
-     * @return 超时时间，默认 30 秒
+     * @return Timeout, default 30 seconds
      */
     default long timeout() {
         return 30_000;
     }
 
     /**
-     * Skill 类别（用于分组）
+     * Skill category (for grouping)
      * 
-     * @return 类别名称
+     * @return Category name
      */
     default String category() {
         return "general";
     }
 
     /**
-     * Skill 版本
+     * Skill version
      * 
-     * @return 版本号
+     * @return Version number
      */
     default String version() {
         return "1.0.0";
     }
 
     /**
-     * 是否启用
+     * Whether enabled
      * 
-     * @return true 表示启用
+     * @return true means enabled
      */
     default boolean isEnabled() {
         return true;

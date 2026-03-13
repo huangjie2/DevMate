@@ -18,7 +18,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.Map;
 
 /**
- * 文件写入 Skill
+ * File Write Skill
  */
 @ApplicationScoped
 public class FileWriteSkill implements Skill {
@@ -33,7 +33,7 @@ public class FileWriteSkill implements Skill {
 
     @Override
     public String description() {
-        return "写入内容到指定文件。会创建不存在的目录。如果文件存在会覆盖。";
+        return "Write content to a specified file. Creates non-existent directories. Overwrites existing file by default.";
     }
 
     @Override
@@ -46,17 +46,17 @@ public class FileWriteSkill implements Skill {
         
         var pathProp = factory.objectNode();
         pathProp.put("type", "string");
-        pathProp.put("description", "文件路径（相对或绝对）");
+        pathProp.put("description", "File path (relative or absolute)");
         properties.set("path", pathProp);
         
         var contentProp = factory.objectNode();
         contentProp.put("type", "string");
-        contentProp.put("description", "要写入的内容");
+        contentProp.put("description", "Content to write");
         properties.set("content", contentProp);
         
         var appendProp = factory.objectNode();
         appendProp.put("type", "boolean");
-        appendProp.put("description", "是否追加模式（默认 false，覆盖）");
+        appendProp.put("description", "Append mode (default false, overwrite)");
         appendProp.put("default", false);
         properties.set("append", appendProp);
         
@@ -72,7 +72,7 @@ public class FileWriteSkill implements Skill {
 
     @Override
     public boolean requiresConfirmation() {
-        return true; // 文件写入需要确认
+        return true; // File write requires confirmation
     }
 
     @Override
@@ -82,10 +82,10 @@ public class FileWriteSkill implements Skill {
         boolean append = input.getBoolean("append", false);
 
         if (content == null) {
-            return Result.failure("内容不能为空");
+            return Result.failure("Content cannot be empty");
         }
 
-        // 校验路径
+        // Validate path
         Result<Path> pathResult = pathValidator.validate(pathStr);
         if (pathResult.isFailure()) {
             return Result.failure(((Result.Failure<Path>) pathResult).error());
@@ -94,14 +94,14 @@ public class FileWriteSkill implements Skill {
         Path path = pathResult.getOrThrow();
 
         try {
-            // 创建父目录
+            // Create parent directories
             Path parentDir = path.getParent();
             if (parentDir != null && !Files.exists(parentDir)) {
                 Files.createDirectories(parentDir);
                 Log.infof("Created directory: %s", parentDir);
             }
 
-            // 写入文件
+            // Write file
             StandardOpenOption openOption = append 
                 ? StandardOpenOption.APPEND 
                 : StandardOpenOption.TRUNCATE_EXISTING;
@@ -112,7 +112,7 @@ public class FileWriteSkill implements Skill {
                 Files.writeString(path, content, openOption);
             }
 
-            // 构建元数据
+            // Build metadata
             Map<String, Object> metadata = Map.of(
                 "path", path.toString(),
                 "size", content.length(),
@@ -122,13 +122,13 @@ public class FileWriteSkill implements Skill {
             Log.infof("Wrote %d bytes to file: %s (append: %s)", content.length(), path, append);
 
             return Result.success(new SkillResult(
-                String.format("成功写入 %d 字节到 %s", content.length(), path),
+                String.format("Successfully wrote %d bytes to %s", content.length(), path),
                 metadata
             ));
 
         } catch (IOException e) {
             Log.errorf(e, "Failed to write file: %s", path);
-            return Result.failure("写入文件失败: " + e.getMessage());
+            return Result.failure("Failed to write file: " + e.getMessage());
         }
     }
 

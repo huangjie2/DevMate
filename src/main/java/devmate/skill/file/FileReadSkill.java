@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 文件读取 Skill
+ * File Read Skill
  */
 @ApplicationScoped
 public class FileReadSkill implements Skill {
@@ -34,7 +34,7 @@ public class FileReadSkill implements Skill {
 
     @Override
     public String description() {
-        return "读取指定文件的内容。支持文本文件，自动检测编码。返回文件内容和元数据。";
+        return "Read content from a specified file. Supports text files with automatic encoding detection. Returns file content and metadata.";
     }
 
     @Override
@@ -47,18 +47,18 @@ public class FileReadSkill implements Skill {
         
         var pathProp = factory.objectNode();
         pathProp.put("type", "string");
-        pathProp.put("description", "文件路径（相对或绝对）");
+        pathProp.put("description", "File path (relative or absolute)");
         properties.set("path", pathProp);
         
         var offsetProp = factory.objectNode();
         offsetProp.put("type", "integer");
-        offsetProp.put("description", "起始行号（可选，0-based）");
+        offsetProp.put("description", "Starting line number (optional, 0-based)");
         offsetProp.put("default", 0);
         properties.set("offset", offsetProp);
         
         var limitProp = factory.objectNode();
         limitProp.put("type", "integer");
-        limitProp.put("description", "读取行数限制（可选）");
+        limitProp.put("description", "Number of lines to read (optional)");
         properties.set("limit", limitProp);
         
         schema.set("properties", properties);
@@ -76,7 +76,7 @@ public class FileReadSkill implements Skill {
         int offset = input.getInteger("offset", 0);
         Integer limit = input.getInteger("limit");
 
-        // 校验路径
+        // Validate path
         Result<Path> pathResult = pathValidator.validate(pathStr);
         if (pathResult.isFailure()) {
             return Result.failure(((Result.Failure<Path>) pathResult).error());
@@ -84,21 +84,21 @@ public class FileReadSkill implements Skill {
 
         Path path = pathResult.getOrThrow();
 
-        // 检查文件是否存在
+        // Check if file exists
         if (!Files.exists(path)) {
-            return Result.failure("文件不存在: " + path);
+            return Result.failure("File not found: " + path);
         }
 
-        // 检查是否为文件
+        // Check if it's a file
         if (!Files.isRegularFile(path)) {
-            return Result.failure("路径不是文件: " + path);
+            return Result.failure("Path is not a file: " + path);
         }
 
-        // 读取文件
+        // Read file
         try {
             List<String> allLines = Files.readAllLines(path);
             
-            // 应用 offset 和 limit
+            // Apply offset and limit
             int startLine = Math.max(0, offset);
             int endLine = limit != null 
                 ? Math.min(startLine + limit, allLines.size())
@@ -107,7 +107,7 @@ public class FileReadSkill implements Skill {
             List<String> selectedLines = allLines.subList(startLine, endLine);
             String content = String.join("\n", selectedLines);
 
-            // 构建元数据
+            // Build metadata
             Map<String, Object> metadata = new LinkedHashMap<>();
             metadata.put("path", path.toString());
             metadata.put("totalLines", allLines.size());
@@ -121,7 +121,7 @@ public class FileReadSkill implements Skill {
 
         } catch (IOException e) {
             Log.errorf(e, "Failed to read file: %s", path);
-            return Result.failure("读取文件失败: " + e.getMessage());
+            return Result.failure("Failed to read file: " + e.getMessage());
         }
     }
 

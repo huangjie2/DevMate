@@ -10,83 +10,83 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
- * 命令黑名单校验器
+ * Command Blacklist Validator
  * 
- * 阻止危险的 Shell 命令执行
+ * Blocks dangerous shell commands from being executed
  */
 @ApplicationScoped
 public class CommandBlacklist {
 
     /**
-     * 危险命令黑名单
+     * Dangerous command blacklist
      */
     private static final Set<String> BLACKLIST_COMMANDS = Set.of(
-        // 删除命令
+        // Delete commands
         "rm", "rmdir", "del", "erase",
-        // 格式化命令
+        // Format commands
         "format", "mkfs", "fdisk",
-        // 系统命令
+        // System commands
         "shutdown", "reboot", "halt", "poweroff", "init",
-        // 磁盘操作
+        // Disk operations
         "dd",
-        // 权限修改
+        // Permission changes
         "chmod", "chown",
-        // 网络危险命令
+        // Network dangerous commands
         "iptables", "ip6tables", "ufw",
-        // 用户管理
+        // User management
         "userdel", "useradd", "passwd",
-        // 危险脚本
+        // Dangerous scripts
         "eval", "exec"
     );
 
     /**
-     * 危险模式（正则匹配）
+     * Dangerous patterns (regex matching)
      */
     private static final List<Pattern> DANGEROUS_PATTERNS = List.of(
         // rm -rf /
         Pattern.compile("rm\\s+(-[rf]+\\s+)*(/|\\*)", Pattern.CASE_INSENSITIVE),
-        // 删除系统目录
+        // Delete system directories
         Pattern.compile("rm\\s+.*(/bin|/boot|/dev|/etc|/lib|/proc|/root|/sbin|/sys|/usr)", Pattern.CASE_INSENSITIVE),
-        // 格式化磁盘
+        // Format disk
         Pattern.compile("mkfs\\s+", Pattern.CASE_INSENSITIVE),
-        // dd 写入
+        // dd write
         Pattern.compile("dd\\s+.*of=/dev/", Pattern.CASE_INSENSITIVE),
-        // 权限提升
+        // Privilege escalation
         Pattern.compile("chmod\\s+[0-7]*777", Pattern.CASE_INSENSITIVE),
-        // 管道到 shell
+        // Pipe to shell
         Pattern.compile("\\|\\s*(ba)?sh", Pattern.CASE_INSENSITIVE),
-        // 反引号或 $() 命令替换
+        // Backticks or $() command substitution
         Pattern.compile("`[^`]+`"),
         Pattern.compile("\\$\\([^)]+\\)"),
-        // 环境变量注入
+        // Environment variable injection
         Pattern.compile("\\$\\{[^}]*:-[^}]*\\}")
     );
 
     /**
-     * 校验命令是否安全
+     * Validate if command is safe
      * 
-     * @param command 要校验的命令
-     * @return 校验结果
+     * @param command Command to validate
+     * @return Validation result
      */
     public Result<String> validate(String command) {
         if (command == null || command.isBlank()) {
-            return Result.failure("命令不能为空");
+            return Result.failure("Command cannot be empty");
         }
 
-        // 提取命令的第一个词
+        // Extract first word of command
         String firstWord = extractFirstWord(command);
 
-        // 检查黑名单命令
+        // Check blacklist commands
         if (BLACKLIST_COMMANDS.contains(firstWord.toLowerCase())) {
-            String error = String.format("危险命令 '%s' 已被禁止", firstWord);
+            String error = String.format("Dangerous command '%s' is prohibited", firstWord);
             Log.warnf(error);
             return Result.failure(error);
         }
 
-        // 检查危险模式
+        // Check dangerous patterns
         for (Pattern pattern : DANGEROUS_PATTERNS) {
             if (pattern.matcher(command).find()) {
-                String error = String.format("命令包含危险模式: %s", pattern.pattern());
+                String error = String.format("Command contains dangerous pattern: %s", pattern.pattern());
                 Log.warnf("Dangerous command pattern detected: %s in command: %s", pattern.pattern(), command);
                 return Result.failure(error);
             }
@@ -97,24 +97,24 @@ public class CommandBlacklist {
     }
 
     /**
-     * 检查命令是否安全（不返回错误信息）
+     * Check if command is safe (without error message)
      * 
-     * @param command 要检查的命令
-     * @return 是否安全
+     * @param command Command to check
+     * @return Whether safe
      */
     public boolean isSafe(String command) {
         return validate(command).isSuccess();
     }
 
     /**
-     * 获取命令黑名单
+     * Get command blacklist
      */
     public Set<String> getBlacklist() {
         return Set.copyOf(BLACKLIST_COMMANDS);
     }
 
     /**
-     * 提取命令的第一个词
+     * Extract first word from command
      */
     private String extractFirstWord(String command) {
         return Arrays.stream(command.trim().split("\\s+"))
@@ -123,11 +123,11 @@ public class CommandBlacklist {
     }
 
     /**
-     * 添加自定义黑名单命令
-     * 注意：这是运行时修改，不会持久化
+     * Add custom blacklist command
+     * Note: This is runtime modification, will not persist
      */
     public void addToBlacklist(String command) {
-        // 由于 BLACKLIST_COMMANDS 是不可变的 Set，这里只能记录日志
+        // Since BLACKLIST_COMMANDS is an immutable Set, we can only log
         Log.warnf("Attempted to add '%s' to blacklist, but runtime modification is not supported", command);
     }
 }

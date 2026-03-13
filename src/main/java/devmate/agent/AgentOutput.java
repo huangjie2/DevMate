@@ -1,51 +1,51 @@
 package devmate.agent;
 
 /**
- * Agent 输出结果
+ * Agent Output Result
  */
 public record AgentOutput(
     /**
-     * 输出内容
+     * Output content
      */
     String content,
 
     /**
-     * 执行的步骤数
+     * Number of executed steps
      */
     int steps,
 
     /**
-     * 调用的工具数
+     * Number of tool calls
      */
     int toolCalls,
 
     /**
-     * 是否成功
+     * Whether successful
      */
     boolean success,
 
     /**
-     * 错误信息（如果失败）
+     * Error message (if failed)
      */
     String error
 ) {
 
     /**
-     * 创建成功输出
+     * Create success output
      */
     public static AgentOutput success(String content, int steps, int toolCalls) {
         return new AgentOutput(content, steps, toolCalls, true, null);
     }
 
     /**
-     * 创建失败输出
+     * Create failure output
      */
     public static AgentOutput failure(String error, int steps, int toolCalls) {
         return new AgentOutput(null, steps, toolCalls, false, error);
     }
 
     /**
-     * 创建简单成功输出
+     * Create simple success output
      */
     public static AgentOutput of(String content) {
         return success(content, 1, 0);

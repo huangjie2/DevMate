@@ -16,9 +16,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 配置加载器
+ * Config Loader
  * 
- * 负责加载 .claude.md、.agent.md、.mcp.json 配置文件
+ * Responsible for loading .claude.md, .agent.md, .mcp.json config files
  */
 @ApplicationScoped
 public class ConfigLoader {
@@ -27,7 +27,7 @@ public class ConfigLoader {
     private static final String AGENT_CONFIG_FILE = ".agent.md";
     private static final String MCP_CONFIG_FILE = ".mcp.json";
 
-    // Markdown 解析正则
+    // Markdown parsing regex
     private static final Pattern SECTION_PATTERN = Pattern.compile("^##\\s+(.+)$", Pattern.MULTILINE);
     private static final Pattern LIST_ITEM_PATTERN = Pattern.compile("^[-*]\\s+(.+)$", Pattern.MULTILINE);
     private static final Pattern KEY_VALUE_PATTERN = Pattern.compile("^[-*]\\s+(\\S+):\\s*(.+)$", Pattern.MULTILINE);
@@ -35,14 +35,14 @@ public class ConfigLoader {
     private Path projectRoot;
 
     /**
-     * 设置项目根目录
+     * Set project root directory
      */
     public void setProjectRoot(Path projectRoot) {
         this.projectRoot = projectRoot;
     }
 
     /**
-     * 获取项目根目录
+     * Get project root directory
      */
     public Path getProjectRoot() {
         if (projectRoot == null) {
@@ -52,7 +52,7 @@ public class ConfigLoader {
     }
 
     /**
-     * 加载项目配置 (.claude.md)
+     * Load project config (.claude.md)
      */
     public Optional<ProjectConfig> loadClaudeConfig() {
         return loadClaudeConfig(getProjectRoot());
@@ -77,7 +77,7 @@ public class ConfigLoader {
     }
 
     /**
-     * 加载 Agent 配置 (.agent.md)
+     * Load Agent config (.agent.md)
      */
     public Optional<AgentConfig> loadAgentConfig() {
         return loadAgentConfig(getProjectRoot());
@@ -102,7 +102,7 @@ public class ConfigLoader {
     }
 
     /**
-     * 加载 MCP 配置 (.mcp.json)
+     * Load MCP config (.mcp.json)
      */
     public Optional<McpConfig> loadMcpConfig() {
         return loadMcpConfig(getProjectRoot());
@@ -126,7 +126,7 @@ public class ConfigLoader {
         }
     }
 
-    // ========== 解析方法 ==========
+    // ========== Parsing Methods ==========
 
     private ProjectConfig parseClaudeConfig(String content) {
         Map<String, String> sections = parseSections(content);
@@ -134,31 +134,31 @@ public class ConfigLoader {
         ProjectConfig.Builder builder = ProjectConfig.builder()
             .rawContent(content);
 
-        // 解析项目信息
-        String projectInfo = sections.get("项目信息");
+        // Parse project info
+        String projectInfo = sections.get("Project Information");
         if (projectInfo != null) {
             parseKeyValuePairs(projectInfo).forEach((k, v) -> {
                 switch (k) {
-                    case "名称" -> builder.name(v);
-                    case "类型" -> builder.type(v);
+                    case "Name" -> builder.name(v);
+                    case "Type" -> builder.type(v);
                 }
             });
         }
 
-        // 解析技术栈
-        String techStack = sections.get("技术栈");
+        // Parse tech stack
+        String techStack = sections.get("Tech Stack");
         if (techStack != null) {
             builder.techStack(parseListItems(techStack));
         }
 
-        // 解析开发约束
-        String constraints = sections.get("开发约束");
+        // Parse development constraints
+        String constraints = sections.get("Development Constraints");
         if (constraints != null) {
             builder.constraints(parseListItems(constraints));
         }
 
-        // 解析测试要求
-        String testRequirements = sections.get("测试要求");
+        // Parse test requirements
+        String testRequirements = sections.get("Test Requirements");
         if (testRequirements != null) {
             builder.testRequirements(parseListItems(testRequirements));
         }
@@ -172,20 +172,20 @@ public class ConfigLoader {
         AgentConfig.Builder builder = AgentConfig.builder()
             .rawContent(content);
 
-        // 解析角色定义
-        String role = sections.get("角色定义");
+        // Parse role definition
+        String role = sections.get("Role Definition");
         if (role != null) {
             builder.role(role.trim());
         }
 
-        // 解析工作原则
-        String principles = sections.get("工作原则");
+        // Parse working principles
+        String principles = sections.get("Working Principles");
         if (principles != null) {
             builder.principles(parseListItems(principles));
         }
 
-        // 解析禁止操作
-        String prohibited = sections.get("禁止操作");
+        // Parse prohibited actions
+        String prohibited = sections.get("Prohibited Actions");
         if (prohibited != null) {
             builder.prohibitedActions(parseListItems(prohibited));
         }
@@ -200,7 +200,7 @@ public class ConfigLoader {
 
             McpConfig.Builder builder = McpConfig.builder();
 
-            // 解析 MCP 服务器
+            // Parse MCP servers
             @SuppressWarnings("unchecked")
             Map<String, Object> servers = (Map<String, Object>) json.get("mcpServers");
             if (servers != null) {
@@ -212,14 +212,14 @@ public class ConfigLoader {
                 builder.mcpServers(serverConfigs);
             }
 
-            // 解析允许的路径
+            // Parse allowed paths
             @SuppressWarnings("unchecked")
             List<String> allowedPaths = (List<String>) json.get("allowedPaths");
             if (allowedPaths != null) {
                 builder.allowedPaths(resolvePaths(allowedPaths));
             }
 
-            // 解析其他配置
+            // Parse other configs
             if (json.get("maxConcurrentSkills") != null) {
                 builder.maxConcurrentSkills(((Number) json.get("maxConcurrentSkills")).intValue());
             }
@@ -253,7 +253,7 @@ public class ConfigLoader {
             .collect(java.util.stream.Collectors.toList());
     }
 
-    // ========== Markdown 解析工具 ==========
+    // ========== Markdown Parsing Utilities ==========
 
     private Map<String, String> parseSections(String markdown) {
         java.util.Map<String, String> sections = new java.util.LinkedHashMap<>();
@@ -265,7 +265,7 @@ public class ConfigLoader {
         for (String line : lines) {
             Matcher matcher = SECTION_PATTERN.matcher(line);
             if (matcher.matches()) {
-                // 保存上一个 section
+                // Save previous section
                 if (currentSection != null) {
                     sections.put(currentSection, currentContent.toString().trim());
                 }
@@ -276,7 +276,7 @@ public class ConfigLoader {
             }
         }
 
-        // 保存最后一个 section
+        // Save last section
         if (currentSection != null) {
             sections.put(currentSection, currentContent.toString().trim());
         }

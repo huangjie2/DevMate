@@ -11,9 +11,9 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * 路径校验器
+ * Path Validator
  * 
- * 确保文件操作只在允许的路径范围内进行
+ * Ensures file operations are only within allowed paths
  */
 @ApplicationScoped
 public class PathValidator {
@@ -22,29 +22,29 @@ public class PathValidator {
     ConfigLoader configLoader;
 
     /**
-     * 校验路径是否在允许范围内
+     * Validate if path is within allowed range
      * 
-     * @param path 要校验的路径
-     * @return 校验结果
+     * @param path Path to validate
+     * @return Validation result
      */
     public Result<Path> validate(String path) {
         return validate(Path.of(path));
     }
 
     /**
-     * 校验路径是否在允许范围内
+     * Validate if path is within allowed range
      * 
-     * @param path 要校验的路径
-     * @return 校验结果
+     * @param path Path to validate
+     * @return Validation result
      */
     public Result<Path> validate(Path path) {
-        // 规范化路径
+        // Normalize path
         Path normalizedPath = path.normalize().toAbsolutePath();
 
-        // 获取允许的路径列表
+        // Get allowed paths list
         List<String> allowedPaths = getAllowedPaths();
 
-        // 检查是否在允许范围内
+        // Check if within allowed range
         for (String allowed : allowedPaths) {
             Path allowedPath = Path.of(allowed).normalize().toAbsolutePath();
             if (normalizedPath.startsWith(allowedPath)) {
@@ -53,9 +53,9 @@ public class PathValidator {
             }
         }
 
-        // 路径不在允许范围内
+        // Path not in allowed range
         String error = String.format(
-            "路径 '%s' 不在允许访问的目录内。允许的目录: %s",
+            "Path '%s' is not within allowed directories. Allowed directories: %s",
             normalizedPath,
             allowedPaths
         );
@@ -64,57 +64,57 @@ public class PathValidator {
     }
 
     /**
-     * 检查路径是否在允许范围内（不返回错误信息）
+     * Check if path is within allowed range (without error message)
      * 
-     * @param path 要检查的路径
-     * @return 是否允许
+     * @param path Path to check
+     * @return Whether allowed
      */
     public boolean isAllowed(String path) {
         return isAllowed(Path.of(path));
     }
 
     /**
-     * 检查路径是否在允许范围内（不返回错误信息）
+     * Check if path is within allowed range (without error message)
      * 
-     * @param path 要检查的路径
-     * @return 是否允许
+     * @param path Path to check
+     * @return Whether allowed
      */
     public boolean isAllowed(Path path) {
         return validate(path).isSuccess();
     }
 
     /**
-     * 检查路径是否存在
+     * Check if path exists
      * 
-     * @param path 路径
-     * @return 是否存在
+     * @param path Path
+     * @return Whether exists
      */
     public boolean exists(Path path) {
         return path.toFile().exists();
     }
 
     /**
-     * 检查路径是否为文件
+     * Check if path is a file
      * 
-     * @param path 路径
-     * @return 是否为文件
+     * @param path Path
+     * @return Whether it's a file
      */
     public boolean isFile(Path path) {
         return path.toFile().isFile();
     }
 
     /**
-     * 检查路径是否为目录
+     * Check if path is a directory
      * 
-     * @param path 路径
-     * @return 是否为目录
+     * @param path Path
+     * @return Whether it's a directory
      */
     public boolean isDirectory(Path path) {
         return path.toFile().isDirectory();
     }
 
     /**
-     * 获取允许的路径列表
+     * Get allowed paths list
      */
     private List<String> getAllowedPaths() {
         return configLoader.loadMcpConfig()
@@ -123,7 +123,7 @@ public class PathValidator {
     }
 
     /**
-     * 获取项目根目录
+     * Get project root directory
      */
     public Path getProjectRoot() {
         return configLoader.getProjectRoot();

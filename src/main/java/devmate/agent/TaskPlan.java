@@ -1,14 +1,14 @@
 package devmate.agent;
 
 /**
- * 任务计划项
+ * Task Plan Item
  */
 public record TaskPlan(
-    int index,          // 序号
-    String task,        // 任务描述
-    String status,      // 状态: pending, in_progress, completed, failed
-    String tool,        // 使用的工具
-    String result       // 结果
+    int index,          // Sequence number
+    String task,        // Task description
+    String status,      // Status: pending, in_progress, completed, failed
+    String tool,        // Tool used
+    String result       // Result
 ) {
     public static TaskPlan pending(int index, String task) {
         return new TaskPlan(index, task, "pending", null, null);

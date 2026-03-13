@@ -12,14 +12,14 @@ import io.quarkus.logging.Log;
 import java.util.Map;
 
 /**
- * JSON 工具类 - 基于 Jackson
+ * JSON Utility - Based on Jackson
  */
 public final class JsonMapper {
 
     private static final ObjectMapper MAPPER = createMapper();
 
     private JsonMapper() {
-        // 工具类，禁止实例化
+        // Utility class, prevent instantiation
     }
 
     private static ObjectMapper createMapper() {
@@ -32,16 +32,16 @@ public final class JsonMapper {
     }
 
     /**
-     * 获取底层 ObjectMapper
+     * Get underlying ObjectMapper
      */
     public static ObjectMapper getObjectMapper() {
         return MAPPER;
     }
 
-    // ========== 序列化 ==========
+    // ========== Serialization ==========
 
     /**
-     * 对象转 JSON 字符串
+     * Object to JSON string
      */
     public static String toJson(Object obj) {
         try {
@@ -53,7 +53,7 @@ public final class JsonMapper {
     }
 
     /**
-     * 对象转格式化的 JSON 字符串
+     * Object to formatted JSON string
      */
     public static String toPrettyJson(Object obj) {
         try {
@@ -65,16 +65,16 @@ public final class JsonMapper {
     }
 
     /**
-     * 对象转 JsonNode
+     * Object to JsonNode
      */
     public static JsonNode toJsonNode(Object obj) {
         return MAPPER.valueToTree(obj);
     }
 
-    // ========== 反序列化 ==========
+    // ========== Deserialization ==========
 
     /**
-     * JSON 字符串转对象
+     * JSON string to object
      */
     public static <T> T fromJson(String json, Class<T> clazz) {
         try {
@@ -86,7 +86,7 @@ public final class JsonMapper {
     }
 
     /**
-     * JSON 字符串转对象（支持泛型）
+     * JSON string to object with generic type support
      */
     public static <T> T fromJson(String json, TypeReference<T> typeRef) {
         try {
@@ -98,7 +98,7 @@ public final class JsonMapper {
     }
 
     /**
-     * JSON 字符串转 JsonNode
+     * JSON string to JsonNode
      */
     public static JsonNode fromJsonToNode(String json) {
         try {
@@ -110,16 +110,16 @@ public final class JsonMapper {
     }
 
     /**
-     * JSON 字符串转 Map
+     * JSON string to Map
      */
     public static Map<String, Object> fromJsonToMap(String json) {
         return fromJson(json, new TypeReference<>() {});
     }
 
-    // ========== 安全操作 ==========
+    // ========== Safe Operations ==========
 
     /**
-     * 安全地转 JSON，失败返回 null
+     * Safely convert to JSON, return null on failure
      */
     public static String toJsonSafe(Object obj) {
         try {
@@ -130,7 +130,7 @@ public final class JsonMapper {
     }
 
     /**
-     * 安全地反序列化，失败返回 null
+     * Safely deserialize, return null on failure
      */
     public static <T> T fromJsonSafe(String json, Class<T> clazz) {
         try {
@@ -141,7 +141,7 @@ public final class JsonMapper {
     }
 
     /**
-     * 判断字符串是否为有效 JSON
+     * Check if string is valid JSON
      */
     public static boolean isValidJson(String json) {
         if (json == null || json.isBlank()) {
@@ -156,7 +156,7 @@ public final class JsonMapper {
     }
 
     /**
-     * JSON 映射异常
+     * JSON Mapping Exception
      */
     public static class JsonMappingException extends RuntimeException {
         public JsonMappingException(String message) {

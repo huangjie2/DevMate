@@ -10,14 +10,14 @@ import devmate.util.Result;
 import java.util.Map;
 
 /**
- * Skill 输入封装
+ * Skill Input Wrapper
  */
 public record SkillInput(Map<String, Object> params) {
 
     private static final JsonNodeFactory JSON_NODE_FACTORY = JsonNodeFactory.instance;
 
     /**
-     * 获取字符串参数
+     * Get string parameter
      */
     public String getString(String key) {
         Object value = params.get(key);
@@ -28,7 +28,7 @@ public record SkillInput(Map<String, Object> params) {
     }
 
     /**
-     * 获取字符串参数，带默认值
+     * Get string parameter with default value
      */
     public String getString(String key, String defaultValue) {
         String value = getString(key);
@@ -36,7 +36,7 @@ public record SkillInput(Map<String, Object> params) {
     }
 
     /**
-     * 获取整数参数
+     * Get integer parameter
      */
     public Integer getInteger(String key) {
         Object value = params.get(key);
@@ -54,7 +54,7 @@ public record SkillInput(Map<String, Object> params) {
     }
 
     /**
-     * 获取整数参数，带默认值
+     * Get integer parameter with default value
      */
     public int getInteger(String key, int defaultValue) {
         Integer value = getInteger(key);
@@ -62,7 +62,7 @@ public record SkillInput(Map<String, Object> params) {
     }
 
     /**
-     * 获取长整数参数
+     * Get long parameter
      */
     public Long getLong(String key) {
         Object value = params.get(key);
@@ -80,7 +80,7 @@ public record SkillInput(Map<String, Object> params) {
     }
 
     /**
-     * 获取布尔参数
+     * Get boolean parameter
      */
     public Boolean getBoolean(String key) {
         Object value = params.get(key);
@@ -94,7 +94,7 @@ public record SkillInput(Map<String, Object> params) {
     }
 
     /**
-     * 获取布尔参数，带默认值
+     * Get boolean parameter with default value
      */
     public boolean getBoolean(String key, boolean defaultValue) {
         Boolean value = getBoolean(key);
@@ -102,28 +102,28 @@ public record SkillInput(Map<String, Object> params) {
     }
 
     /**
-     * 检查是否包含参数
+     * Check if parameter exists
      */
     public boolean has(String key) {
         return params.containsKey(key);
     }
 
     /**
-     * 转换为 JSON 节点
+     * Convert to JSON node
      */
     public JsonNode toJson() {
         return JsonMapper.toJsonNode(params);
     }
 
     /**
-     * 创建构建器
+     * Create builder
      */
     public static Builder builder() {
         return new Builder();
     }
 
     /**
-     * 构建器
+     * Builder
      */
     public static class Builder {
         private final ObjectNode params = JSON_NODE_FACTORY.objectNode();

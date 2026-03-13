@@ -7,12 +7,12 @@ import devmate.util.Result;
 import java.util.concurrent.Flow;
 
 /**
- * Agent 事件接口 - 用于流式输出的类型
+ * Agent Event Interface - Types for streaming output
  */
 public sealed interface AgentEvent {
 
     /**
-     * 思考事件
+     * Thinking event
      */
     record Thinking(String content) implements AgentEvent {
         public Thinking {
@@ -21,7 +21,7 @@ public sealed interface AgentEvent {
     }
 
     /**
-     * 工具调用事件
+     * Tool call event
      */
     record ToolCall(String skillName, SkillInput input) implements AgentEvent {
         public ToolCall {
@@ -32,7 +32,7 @@ public sealed interface AgentEvent {
     }
 
     /**
-     * 工具执行结果事件
+     * Tool execution result event
      */
     record ToolResult(String skillName, SkillResult result) implements AgentEvent {
         public ToolResult {
@@ -43,7 +43,7 @@ public sealed interface AgentEvent {
     }
 
     /**
-     * 最终回答事件
+     * Final answer event
      */
     record FinalAnswer(String content) implements AgentEvent {
         public FinalAnswer {
@@ -52,7 +52,7 @@ public sealed interface AgentEvent {
     }
 
     /**
-     * 错误事件
+     * Error event
      */
     record Error(String message, Throwable cause) implements AgentEvent {
         public Error(String message) {
