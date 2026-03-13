@@ -3,6 +3,7 @@ package devmate.cli;
 import devmate.agent.Agent;
 import devmate.agent.AgentOutput;
 import devmate.config.ConfigLoader;
+import devmate.security.PathValidator;
 import devmate.security.UserConfirmation;
 import devmate.skill.file.FileListSkill;
 import devmate.skill.file.FileReadSkill;
@@ -16,15 +17,14 @@ import io.quarkus.logging.Log;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
-import org.jline.reader.EndOfFileException;
-import org.jline.reader.LineReader;
-import org.jline.reader.LineReaderBuilder;
-import org.jline.reader.UserInterruptException;
+import org.jline.reader.*;
+import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * DevMate CLI 入口
@@ -43,6 +43,9 @@ public class DevMateCli implements QuarkusApplication {
 
     @Inject
     UserConfirmation userConfirmation;
+
+    @Inject
+    PathValidator pathValidator;
 
     @Inject
     FileReadSkill fileReadSkill;
@@ -64,6 +67,7 @@ public class DevMateCli implements QuarkusApplication {
 
     private Terminal terminal;
     private LineReader reader;
+    private FileReferenceParser fileReferenceParser;
 
     @Override
     public int run(String... args) throws Exception {
@@ -71,6 +75,7 @@ public class DevMateCli implements QuarkusApplication {
         initializeTerminal();
         initializeProjectRoot(args);
         registerSkills();
+        initializeFileReferenceParser();
 
         // 打印欢迎信息
         printWelcome();
@@ -93,10 +98,24 @@ public class DevMateCli implements QuarkusApplication {
         terminal = TerminalBuilder.builder()
             .system(true)
             .build();
+
+        // 创建补全器
+        CommandCompleter completer = new CommandCompleter(skillRegistry, configLoader.getProjectRoot());
+
         reader = LineReaderBuilder.builder()
             .terminal(terminal)
             .appName("DevMate")
+            .completer(completer)
+            .history(new DefaultHistory())
+            .variable(LineReader.HISTORY_FILE, Path.of(System.getProperty("user.home"), ".devmate_history"))
+            .variable(LineReader.HISTORY_SIZE, 1000)
+            .variable(LineReader.HISTORY_FILE_SIZE, 1000)
             .build();
+
+        // 启用自动补全选项
+        reader.setOpt(LineReader.Option.AUTO_GROUP);
+        reader.setOpt(LineReader.Option.AUTO_MENU_LIST);
+        reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
     }
 
     /**
@@ -111,6 +130,13 @@ public class DevMateCli implements QuarkusApplication {
         }
         configLoader.setProjectRoot(projectRoot);
         Log.infof("Project root: %s", projectRoot);
+    }
+
+    /**
+     * 初始化文件引用解析器
+     */
+    private void initializeFileReferenceParser() {
+        fileReferenceParser = new FileReferenceParser(configLoader.getProjectRoot(), pathValidator);
     }
 
     /**
@@ -146,6 +172,7 @@ public class DevMateCli implements QuarkusApplication {
         System.out.println("╚═══════════════════════════════════════════════════════════╝");
         System.out.println();
         System.out.println("输入 /help 查看帮助，/exit 退出，/reset 清空上下文");
+        System.out.println("使用 @filename 引用文件，按 Tab 键自动补全");
         System.out.println();
     }
 
@@ -179,12 +206,57 @@ public class DevMateCli implements QuarkusApplication {
                 continue;
             }
 
+            // 解析文件引用
+            String processedInput = processFileReferences(trimmedInput);
+
             // 执行 Agent
-            executeAgent(trimmedInput);
+            executeAgent(processedInput);
         }
 
         System.out.println("\n再见!");
         return 0;
+    }
+
+    /**
+     * 处理文件引用
+     */
+    private String processFileReferences(String input) {
+        if (!fileReferenceParser.hasFileReference(input)) {
+            return input;
+        }
+
+        FileReferenceParser.ParseResult result = fileReferenceParser.parse(input);
+        
+        // 显示解析的文件引用
+        List<FileReferenceParser.FileReference> refs = result.references();
+        if (!refs.isEmpty()) {
+            System.out.println();
+            System.out.println("📂 检测到 " + refs.size() + " 个文件引用:");
+            for (FileReferenceParser.FileReference ref : refs) {
+                if (ref.success()) {
+                    String size = formatSize(ref.content().length());
+                    System.out.println("   ✓ " + ref.reference() + " (" + size + ")");
+                } else {
+                    System.out.println("   ✗ " + ref.reference() + " - " + ref.error());
+                }
+            }
+            System.out.println();
+        }
+
+        return result.processedInput();
+    }
+
+    /**
+     * 格式化文件大小
+     */
+    private String formatSize(int bytes) {
+        if (bytes < 1024) {
+            return bytes + " B";
+        } else if (bytes < 1024 * 1024) {
+            return String.format("%.1f KB", bytes / 1024.0);
+        } else {
+            return String.format("%.1f MB", bytes / (1024.0 * 1024));
+        }
     }
 
     /**
@@ -240,7 +312,16 @@ public class DevMateCli implements QuarkusApplication {
         System.out.println("  /config       显示当前配置");
         System.out.println("  /clear        清屏");
         System.out.println();
-        System.out.println("直接输入问题或任务，Agent 会自动处理。");
+        System.out.println("文件引用:");
+        System.out.println("  @filename     引用文件内容");
+        System.out.println("  @path/to/file 引用相对路径文件");
+        System.out.println("  @.            引用项目结构");
+        System.out.println();
+        System.out.println("示例:");
+        System.out.println("  分析 @src/main/java/App.java 这个文件");
+        System.out.println("  对比 @file1.java 和 @file2.java");
+        System.out.println();
+        System.out.println("按 Tab 键可以自动补全命令和文件路径。");
         System.out.println();
     }
 
