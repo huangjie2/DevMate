@@ -18,9 +18,11 @@ import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import jakarta.inject.Inject;
 import org.jline.reader.*;
+import org.jline.reader.impl.DefaultParser;
 import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.AttributedStyle;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -91,6 +93,8 @@ public class DevMateCli implements QuarkusApplication {
         return exitCode;
     }
 
+    private AutoSuggestionProvider suggestionProvider;
+
     /**
      * 初始化终端
      */
@@ -99,23 +103,51 @@ public class DevMateCli implements QuarkusApplication {
             .system(true)
             .build();
 
-        // 创建补全器
+        // 创建补全器和自动建议提供器
         CommandCompleter completer = new CommandCompleter(skillRegistry, configLoader.getProjectRoot());
+        suggestionProvider = new AutoSuggestionProvider(skillRegistry, configLoader.getProjectRoot());
 
         reader = LineReaderBuilder.builder()
             .terminal(terminal)
             .appName("DevMate")
             .completer(completer)
+            .parser(new DefaultParser())
             .history(new DefaultHistory())
             .variable(LineReader.HISTORY_FILE, Path.of(System.getProperty("user.home"), ".devmate_history"))
             .variable(LineReader.HISTORY_SIZE, 1000)
             .variable(LineReader.HISTORY_FILE_SIZE, 1000)
+            // 补全样式
+            .variable(LineReader.COMPLETION_STYLE_LIST_SELECTION, AttributedStyle.BOLD.foreground(AttributedStyle.CYAN))
+            .variable(LineReader.COMPLETION_STYLE_LIST_DESCRIPTION, AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW))
             .build();
 
-        // 启用自动补全选项
-        reader.setOpt(LineReader.Option.AUTO_GROUP);
-        reader.setOpt(LineReader.Option.AUTO_MENU_LIST);
-        reader.setOpt(LineReader.Option.CASE_INSENSITIVE);
+        // 启用自动补全选项 - 关键配置实现类似 iFlow 的实时补全
+        reader.setOpt(LineReader.Option.AUTO_GROUP);        // 自动分组
+        reader.setOpt(LineReader.Option.AUTO_MENU);         // 自动显示菜单
+        reader.setOpt(LineReader.Option.AUTO_MENU_LIST);    // 自动显示菜单列表
+        reader.setOpt(LineReader.Option.CASE_INSENSITIVE);  // 大小写不敏感
+        
+        // 设置自动提示功能
+        setupAutoSuggestions();
+    }
+
+    /**
+     * 设置自动提示功能 - 输入时实时显示补全建议
+     */
+    private void setupAutoSuggestions() {
+        // 启用自动建议，输入时自动显示补全
+        reader.setAutosuggestion(LineReader.SuggestionType.COMPLETER);
+    }
+
+    /**
+     * 获取当前光标所在的单词
+     */
+    private String getCurrentWord(String buffer, int cursor) {
+        int start = cursor;
+        while (start > 0 && !Character.isWhitespace(buffer.charAt(start - 1))) {
+            start--;
+        }
+        return buffer.substring(start, cursor);
     }
 
     /**
@@ -172,7 +204,7 @@ public class DevMateCli implements QuarkusApplication {
         System.out.println("╚═══════════════════════════════════════════════════════════╝");
         System.out.println();
         System.out.println("输入 /help 查看帮助，/exit 退出，/reset 清空上下文");
-        System.out.println("使用 @filename 引用文件，按 Tab 键自动补全");
+        System.out.println("使用 @filename 引用文件，Tab 显示补全菜单");
         System.out.println();
     }
 
