@@ -33,21 +33,37 @@ public class GitCommitSkill implements Skill {
 
     @Override
     public JsonNode inputSchema() {
-        return JsonNodeFactory.instance.objectNode()
-            .put("type", "object")
-            .set("properties", JsonNodeFactory.instance.objectNode()
-                .set("message", JsonNodeFactory.instance.objectNode()
-                    .put("type", "string")
-                    .put("description", "提交信息"))
-                .set("files", JsonNodeFactory.instance.objectNode()
-                    .put("type", "array")
-                    .set("items", JsonNodeFactory.instance.objectNode()
-                        .put("type", "string"))
-                    .put("description", "要提交的文件列表（可选，默认全部暂存）"))
-                .set("workdir", JsonNodeFactory.instance.objectNode()
-                    .put("type", "string")
-                    .put("description", "工作目录（可选）"))
-            );
+        var factory = JsonNodeFactory.instance;
+        var schema = factory.objectNode();
+        schema.put("type", "object");
+        
+        var properties = factory.objectNode();
+        
+        var messageProp = factory.objectNode();
+        messageProp.put("type", "string");
+        messageProp.put("description", "提交信息");
+        properties.set("message", messageProp);
+        
+        var filesProp = factory.objectNode();
+        filesProp.put("type", "array");
+        filesProp.put("description", "要提交的文件列表（可选，默认全部暂存）");
+        var items = factory.objectNode();
+        items.put("type", "string");
+        filesProp.set("items", items);
+        properties.set("files", filesProp);
+        
+        var workdirProp = factory.objectNode();
+        workdirProp.put("type", "string");
+        workdirProp.put("description", "工作目录（可选）");
+        properties.set("workdir", workdirProp);
+        
+        schema.set("properties", properties);
+        
+        var required = factory.arrayNode();
+        required.add("message");
+        schema.set("required", required);
+        
+        return schema;
     }
 
     @Override

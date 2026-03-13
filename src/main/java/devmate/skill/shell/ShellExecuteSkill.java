@@ -38,19 +38,34 @@ public class ShellExecuteSkill implements Skill {
 
     @Override
     public JsonNode inputSchema() {
-        return JsonNodeFactory.instance.objectNode()
-            .put("type", "object")
-            .set("properties", JsonNodeFactory.instance.objectNode()
-                .set("command", JsonNodeFactory.instance.objectNode()
-                    .put("type", "string")
-                    .put("description", "要执行的命令"))
-                .set("workdir", JsonNodeFactory.instance.objectNode()
-                    .put("type", "string")
-                    .put("description", "工作目录（可选，默认当前目录）"))
-                .set("timeout", JsonNodeFactory.instance.objectNode()
-                    .put("type", "integer")
-                    .put("description", "超时时间（毫秒，可选，默认 30000）"))
-            );
+        var factory = JsonNodeFactory.instance;
+        var schema = factory.objectNode();
+        schema.put("type", "object");
+        
+        var properties = factory.objectNode();
+        
+        var commandProp = factory.objectNode();
+        commandProp.put("type", "string");
+        commandProp.put("description", "要执行的命令");
+        properties.set("command", commandProp);
+        
+        var workdirProp = factory.objectNode();
+        workdirProp.put("type", "string");
+        workdirProp.put("description", "工作目录（可选，默认当前目录）");
+        properties.set("workdir", workdirProp);
+        
+        var timeoutProp = factory.objectNode();
+        timeoutProp.put("type", "integer");
+        timeoutProp.put("description", "超时时间（毫秒，可选，默认 30000）");
+        properties.set("timeout", timeoutProp);
+        
+        schema.set("properties", properties);
+        
+        var required = factory.arrayNode();
+        required.add("command");
+        schema.set("required", required);
+        
+        return schema;
     }
 
     @Override

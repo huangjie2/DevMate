@@ -33,17 +33,26 @@ public class GitStatusSkill implements Skill {
 
     @Override
     public JsonNode inputSchema() {
-        return JsonNodeFactory.instance.objectNode()
-            .put("type", "object")
-            .set("properties", JsonNodeFactory.instance.objectNode()
-                .set("workdir", JsonNodeFactory.instance.objectNode()
-                    .put("type", "string")
-                    .put("description", "工作目录（可选，默认当前目录）"))
-                .set("short", JsonNodeFactory.instance.objectNode()
-                    .put("type", "boolean")
-                    .put("description", "是否使用简短格式")
-                    .put("default", false))
-            );
+        var factory = JsonNodeFactory.instance;
+        var schema = factory.objectNode();
+        schema.put("type", "object");
+        
+        var properties = factory.objectNode();
+        
+        var workdirProp = factory.objectNode();
+        workdirProp.put("type", "string");
+        workdirProp.put("description", "工作目录（可选，默认当前目录）");
+        properties.set("workdir", workdirProp);
+        
+        var shortProp = factory.objectNode();
+        shortProp.put("type", "boolean");
+        shortProp.put("description", "是否使用简短格式");
+        shortProp.put("default", false);
+        properties.set("short", shortProp);
+        
+        schema.set("properties", properties);
+        
+        return schema;
     }
 
     @Override

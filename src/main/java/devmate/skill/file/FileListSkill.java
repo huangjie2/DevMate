@@ -40,21 +40,32 @@ public class FileListSkill implements Skill {
 
     @Override
     public JsonNode inputSchema() {
-        return JsonNodeFactory.instance.objectNode()
-            .put("type", "object")
-            .set("properties", JsonNodeFactory.instance.objectNode()
-                .set("path", JsonNodeFactory.instance.objectNode()
-                    .put("type", "string")
-                    .put("description", "目录路径（默认当前目录）")
-                    .put("default", "."))
-                .set("recursive", JsonNodeFactory.instance.objectNode()
-                    .put("type", "boolean")
-                    .put("description", "是否递归列出子目录")
-                    .put("default", false))
-                .set("pattern", JsonNodeFactory.instance.objectNode()
-                    .put("type", "string")
-                    .put("description", "文件名过滤模式（glob 格式，如 *.java）"))
-            );
+        var factory = JsonNodeFactory.instance;
+        var schema = factory.objectNode();
+        schema.put("type", "object");
+        
+        var properties = factory.objectNode();
+        
+        var pathProp = factory.objectNode();
+        pathProp.put("type", "string");
+        pathProp.put("description", "目录路径（默认当前目录）");
+        pathProp.put("default", ".");
+        properties.set("path", pathProp);
+        
+        var recursiveProp = factory.objectNode();
+        recursiveProp.put("type", "boolean");
+        recursiveProp.put("description", "是否递归列出子目录");
+        recursiveProp.put("default", false);
+        properties.set("recursive", recursiveProp);
+        
+        var patternProp = factory.objectNode();
+        patternProp.put("type", "string");
+        patternProp.put("description", "文件名过滤模式（glob 格式，如 *.java）");
+        properties.set("pattern", patternProp);
+        
+        schema.set("properties", properties);
+        
+        return schema;
     }
 
     @Override

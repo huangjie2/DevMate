@@ -38,20 +38,36 @@ public class FileWriteSkill implements Skill {
 
     @Override
     public JsonNode inputSchema() {
-        return JsonNodeFactory.instance.objectNode()
-            .put("type", "object")
-            .set("properties", JsonNodeFactory.instance.objectNode()
-                .set("path", JsonNodeFactory.instance.objectNode()
-                    .put("type", "string")
-                    .put("description", "文件路径（相对或绝对）"))
-                .set("content", JsonNodeFactory.instance.objectNode()
-                    .put("type", "string")
-                    .put("description", "要写入的内容"))
-                .set("append", JsonNodeFactory.instance.objectNode()
-                    .put("type", "boolean")
-                    .put("description", "是否追加模式（默认 false，覆盖）")
-                    .put("default", false))
-            );
+        var factory = JsonNodeFactory.instance;
+        var schema = factory.objectNode();
+        schema.put("type", "object");
+        
+        var properties = factory.objectNode();
+        
+        var pathProp = factory.objectNode();
+        pathProp.put("type", "string");
+        pathProp.put("description", "文件路径（相对或绝对）");
+        properties.set("path", pathProp);
+        
+        var contentProp = factory.objectNode();
+        contentProp.put("type", "string");
+        contentProp.put("description", "要写入的内容");
+        properties.set("content", contentProp);
+        
+        var appendProp = factory.objectNode();
+        appendProp.put("type", "boolean");
+        appendProp.put("description", "是否追加模式（默认 false，覆盖）");
+        appendProp.put("default", false);
+        properties.set("append", appendProp);
+        
+        schema.set("properties", properties);
+        
+        var required = factory.arrayNode();
+        required.add("path");
+        required.add("content");
+        schema.set("required", required);
+        
+        return schema;
     }
 
     @Override

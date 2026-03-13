@@ -39,20 +39,35 @@ public class FileReadSkill implements Skill {
 
     @Override
     public JsonNode inputSchema() {
-        return JsonNodeFactory.instance.objectNode()
-            .put("type", "object")
-            .set("properties", JsonNodeFactory.instance.objectNode()
-                .set("path", JsonNodeFactory.instance.objectNode()
-                    .put("type", "string")
-                    .put("description", "文件路径（相对或绝对）"))
-                .set("offset", JsonNodeFactory.instance.objectNode()
-                    .put("type", "integer")
-                    .put("description", "起始行号（可选，0-based）")
-                    .put("default", 0))
-                .set("limit", JsonNodeFactory.instance.objectNode()
-                    .put("type", "integer")
-                    .put("description", "读取行数限制（可选）"))
-            );
+        var factory = JsonNodeFactory.instance;
+        var schema = factory.objectNode();
+        schema.put("type", "object");
+        
+        var properties = factory.objectNode();
+        
+        var pathProp = factory.objectNode();
+        pathProp.put("type", "string");
+        pathProp.put("description", "文件路径（相对或绝对）");
+        properties.set("path", pathProp);
+        
+        var offsetProp = factory.objectNode();
+        offsetProp.put("type", "integer");
+        offsetProp.put("description", "起始行号（可选，0-based）");
+        offsetProp.put("default", 0);
+        properties.set("offset", offsetProp);
+        
+        var limitProp = factory.objectNode();
+        limitProp.put("type", "integer");
+        limitProp.put("description", "读取行数限制（可选）");
+        properties.set("limit", limitProp);
+        
+        schema.set("properties", properties);
+        
+        var required = factory.arrayNode();
+        required.add("path");
+        schema.set("required", required);
+        
+        return schema;
     }
 
     @Override
